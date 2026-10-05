@@ -1,0 +1,4 @@
+# Raw review text belongs to its authors; regenerate it with analysis/fetch_reviews.py
+analysis/reviews/
+__pycache__/
+wwf-ftue-case-study.html

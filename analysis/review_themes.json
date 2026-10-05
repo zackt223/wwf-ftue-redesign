@@ -1,0 +1,57 @@
+{
+  "total_reviews": 450,
+  "rating_counts": {
+    "1": 171,
+    "2": 72,
+    "3": 84,
+    "4": 45,
+    "5": 78
+  },
+  "negative_reviews": 243,
+  "date_range": [
+    "2026-07-21",
+    "2026-10-03"
+  ],
+  "themes": [
+    {
+      "theme": "Ads interrupt play",
+      "reviews": 140,
+      "share_pct": 57.6
+    },
+    {
+      "theme": "Coins, rewards & paywalls",
+      "reviews": 73,
+      "share_pct": 30.0
+    },
+    {
+      "theme": "Bugs, freezes & slowness",
+      "reviews": 39,
+      "share_pct": 16.0
+    },
+    {
+      "theme": "Bots & opponent quality",
+      "reviews": 26,
+      "share_pct": 10.7
+    },
+    {
+      "theme": "Sign-in & account",
+      "reviews": 24,
+      "share_pct": 9.9
+    },
+    {
+      "theme": "Unfair tiles / rigged draws",
+      "reviews": 11,
+      "share_pct": 4.5
+    },
+    {
+      "theme": "Dictionary & word validity",
+      "reviews": 4,
+      "share_pct": 1.6
+    },
+    {
+      "theme": "Learning & onboarding",
+      "reviews": 2,
+      "share_pct": 0.8
+    }
+  ]
+}

@@ -1,0 +1,1477 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="author" content="Zackariah Telsem">
+<meta name="description" content="A teardown of the Words With Friends first-time experience, checked against 450 App Store reviews, with a playable redesigned first match, product spec and A/B test plan. By Zackariah Telsem.">
+<meta property="og:title" content="Words With Friends FTUE Redesign">
+<meta property="og:description" content="Onboarding teardown, playable prototype and A/B test plan by Zackariah Telsem.">
+<meta property="og:type" content="website">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+</head>
+<body>
+<title>Words With Friends FTUE Redesign</title>
+<style>
+/* Layout: Apple-style product page. Hero pairs the thesis with a live, scaled iPhone prototype; sections below run in one wide column with generous air. */
+:root {
+  --bg: #f5f5f7;
+  --surface: #ffffff;
+  --ink: #1d1d1f;
+  --ink-2: #424245;
+  --muted: #6e6e73;
+  --line: #d2d2d7;
+  --accent: #b5570a;          /* tile amber, deepened for text contrast */
+  --accent-fill: #e8892b;     /* tile amber for marks */
+  --accent-soft: #fbeedd;
+  --other-fill: #a1a1a6;
+  --good: #1d7a3a;
+  --scrim: rgba(0,0,0,.04);
+  --sans: system-ui, -apple-system, "SF Pro Text", "Segoe UI Variable Text", "Segoe UI", Roboto, sans-serif;
+  --display: system-ui, -apple-system, "SF Pro Display", "Segoe UI Variable Display", "Segoe UI", Roboto, sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #000000; --surface: #1c1c1e; --ink: #f5f5f7; --ink-2: #d1d1d6; --muted: #98989d; --line: #38383a;
+    --accent: #ffb064; --accent-fill: #f0963a; --accent-soft: #3a2614; --other-fill: #636366; --good: #4cd17a; --scrim: rgba(255,255,255,.04);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #000000; --surface: #1c1c1e; --ink: #f5f5f7; --ink-2: #d1d1d6; --muted: #98989d; --line: #38383a;
+  --accent: #ffb064; --accent-fill: #f0963a; --accent-soft: #3a2614; --other-fill: #636366; --good: #4cd17a; --scrim: rgba(255,255,255,.04);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 400 17px/1.5 var(--sans); letter-spacing: -0.01em; -webkit-font-smoothing: antialiased; }
+.wrap { max-width: 1120px; margin: 0 auto; padding-inline: 22px; padding-block: 56px 96px; }
+.col { max-width: 680px; }
+h1, h2, h3 { font-family: var(--display); margin: 0; text-wrap: balance; color: var(--ink); }
+h1 { font-size: clamp(2.5rem, 5.6vw, 4.2rem); line-height: 1.04; font-weight: 700; letter-spacing: -0.035em; }
+h2 { font-size: clamp(1.9rem, 3.6vw, 2.75rem); line-height: 1.08; font-weight: 700; letter-spacing: -0.028em; }
+h3 { font-size: 1.2rem; line-height: 1.25; font-weight: 600; letter-spacing: -0.015em; }
+p { margin: 0; }
+a { color: var(--accent); text-underline-offset: 3px; }
+a:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid var(--accent-fill); outline-offset: 3px; border-radius: 6px; }
+.eyebrow { font-size: 0.8rem; font-weight: 600; letter-spacing: 0.02em; color: var(--accent); }
+.lede { font-size: clamp(1.15rem, 1.9vw, 1.35rem); line-height: 1.45; color: var(--ink-2); letter-spacing: -0.015em; }
+.muted { color: var(--muted); }
+.small { font-size: 0.85rem; line-height: 1.45; letter-spacing: 0; }
+.stack { display: flex; flex-direction: column; gap: 14px; }
+.num { font-variant-numeric: tabular-nums; }
+section { padding-block: 88px 0; display: flex; flex-direction: column; gap: 32px; }
+.sec-head { display: flex; flex-direction: column; gap: 12px; max-width: 760px; }
+
+/* ---------- Hero ---------- */
+.hero { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 56px; align-items: center; }
+.hero-copy { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
+.facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--line); }
+.fact { padding: 16px 16px 0 0; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.fact b { font: 700 1.75rem/1.1 var(--display); letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.fact span { font-size: 0.82rem; line-height: 1.35; color: var(--muted); letter-spacing: 0; }
+.try { display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; border-radius: 14px; background: var(--accent-soft); color: var(--ink); font-size: 0.92rem; line-height: 1.45; }
+.try svg { flex: none; margin-top: 2px; }
+.meta { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.82rem; color: var(--muted); letter-spacing: 0; }
+
+/* ---------- Phone shell (page side) ---------- */
+.device-col { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.device-fit { position: relative; }
+.device { position: absolute; top: 0; left: 0; width: 414px; height: 868px; transform-origin: 0 0; }
+.device-ctrl { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: center; }
+.pill-btn { appearance: none; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: 500 0.85rem/1 var(--sans); padding: 9px 14px; border-radius: 999px; cursor: pointer; transition: transform 100ms ease-out; }
+.pill-btn:active { transform: scale(0.96); }
+
+/* ---------- Teardown ---------- */
+.shots { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 22px; }
+.shot { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.shot-frame { position: relative; border-radius: 26px; overflow: hidden; background: #111; box-shadow: 0 0 0 1px var(--line), 0 18px 40px -24px rgba(0,0,0,.45); max-width: 100%; aspect-ratio: 471 / 1024; }
+.shot-frame img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.mark { position: absolute; width: 26px; height: 26px; margin: -13px 0 0 -13px; border-radius: 50%; background: var(--accent-fill); color: #fff; font: 700 0.78rem/26px var(--sans); text-align: center; box-shadow: 0 0 0 3px rgba(255,255,255,.9), 0 4px 10px rgba(0,0,0,.35); }
+.shot h3 { font-size: 1.02rem; }
+.shot ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.shot li { display: grid; grid-template-columns: 22px 1fr; gap: 8px; font-size: 0.88rem; line-height: 1.45; color: var(--ink-2); letter-spacing: 0; }
+.shot li i { font-style: normal; width: 20px; height: 20px; border-radius: 50%; background: var(--accent-fill); color: #fff; font: 700 0.7rem/20px var(--sans); text-align: center; margin-top: 1px; }
+.shot li.good i { background: var(--good); }
+.shot .t { font: 500 0.75rem/1 var(--mono); color: var(--muted); letter-spacing: 0; }
+
+/* ---------- Journey strip ---------- */
+.journey { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); position: relative; }
+.journey::before { content: ""; position: absolute; left: 6%; right: 6%; top: 15px; height: 2px; background: var(--line); }
+.jstep { position: relative; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; padding-inline: 6px; min-width: 0; }
+.jdot { width: 32px; height: 32px; border-radius: 50%; background: var(--surface); border: 2px solid var(--line); display: grid; place-items: center; font: 700 0.8rem/1 var(--sans); color: var(--muted); z-index: 1; }
+.jstep.hit .jdot { background: var(--accent-fill); border-color: var(--accent-fill); color: #fff; }
+.jstep b { font-size: 0.92rem; font-weight: 600; letter-spacing: -0.01em; }
+.jstep span { font-size: 0.8rem; color: var(--muted); line-height: 1.35; letter-spacing: 0; }
+
+/* ---------- Drop-off list ---------- */
+.drops { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; background: var(--line); border-radius: 22px; overflow: hidden; border: 1px solid var(--line); }
+.drop { background: var(--surface); padding: 28px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.drop .k { display: flex; align-items: center; gap: 10px; }
+.drop .k i { font-style: normal; width: 26px; height: 26px; border-radius: 50%; background: var(--accent-fill); color: #fff; font: 700 0.8rem/26px var(--sans); text-align: center; flex: none; }
+.drop p { color: var(--ink-2); font-size: 0.95rem; letter-spacing: 0; }
+.drop .ev { font-size: 0.85rem; color: var(--muted); border-top: 1px solid var(--line); padding-top: 12px; letter-spacing: 0; }
+.drop .fix { font-size: 0.92rem; letter-spacing: 0; }
+.drop .fix b { color: var(--accent); font-weight: 600; }
+
+/* ---------- Evidence ---------- */
+.evidence { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 40px; align-items: start; }
+.chart { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.legend { display: flex; flex-wrap: wrap; gap: 16px; font-size: 0.8rem; color: var(--ink-2); letter-spacing: 0; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: 0; }
+.bars { display: flex; flex-direction: column; gap: 10px; }
+.brow { display: grid; grid-template-columns: minmax(0, 190px) minmax(0, 1fr) 52px; gap: 12px; align-items: center; font-size: 0.88rem; letter-spacing: 0; cursor: default; }
+.brow .lbl { color: var(--ink); }
+.brow .val { text-align: right; font: 500 0.82rem/1 var(--mono); font-variant-numeric: tabular-nums; color: var(--ink-2); }
+.btrack { height: 12px; position: relative; }
+.bfill { position: absolute; inset: 0 auto 0 0; border-radius: 0 4px 4px 0; background: var(--accent-fill); }
+.brow.other .bfill { background: var(--other-fill); }
+.brow:hover .bfill { filter: brightness(1.08); }
+.brow:hover .lbl { font-weight: 600; }
+.axis { display: grid; grid-template-columns: minmax(0, 190px) minmax(0, 1fr) 52px; gap: 12px; font: 400 0.72rem/1 var(--mono); color: var(--muted); }
+.axis div { display: flex; justify-content: space-between; border-top: 1px solid var(--line); padding-top: 6px; }
+.stats { display: flex; flex-direction: column; gap: 0; border-top: 1px solid var(--line); }
+.stat { display: grid; grid-template-columns: 112px 1fr; gap: 14px; padding-block: 16px; border-bottom: 1px solid var(--line); align-items: baseline; }
+.stat b { font: 700 1.6rem/1.1 var(--display); letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.stat span { font-size: 0.88rem; color: var(--ink-2); letter-spacing: 0; line-height: 1.45; }
+.stat small { display: block; color: var(--muted); font-size: 0.78rem; margin-top: 2px; }
+
+/* ---------- Redesign principles ---------- */
+.principles { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 28px 36px; }
+.principle { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.principle .tag { font: 600 0.75rem/1 var(--sans); color: var(--muted); letter-spacing: 0.02em; }
+.principle p { font-size: 0.95rem; color: var(--ink-2); letter-spacing: 0; }
+.checklist { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font-size: 0.82rem; padding: 7px 12px; border-radius: 999px; border: 1px solid var(--line); color: var(--ink-2); background: var(--surface); letter-spacing: 0; display: inline-flex; gap: 6px; align-items: center; }
+.chip.done { border-color: var(--good); color: var(--good); }
+.chip .ck { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid currentColor; display: inline-grid; place-items: center; font-size: 9px; line-height: 1; }
+
+/* ---------- Spec ---------- */
+.spec { background: var(--surface); border-radius: 26px; padding: clamp(22px, 4.5vw, 52px); display: flex; flex-direction: column; gap: 36px; }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px; }
+.grid2 > div { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.label { font: 600 0.75rem/1 var(--sans); color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+.spec p, .spec li { font-size: 0.95rem; color: var(--ink-2); letter-spacing: 0; }
+.spec ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
+.acs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.ac { padding: 16px 18px; border-radius: 16px; background: var(--bg); display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.ac .id { font: 600 0.72rem/1 var(--mono); color: var(--accent); }
+.ac p { font-size: 0.9rem; line-height: 1.5; }
+.ac em { font-style: normal; font-weight: 600; color: var(--ink); }
+
+/* ---------- Tables ---------- */
+.tbl { overflow-x: auto; border-radius: 18px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; min-width: 620px; font-size: 0.9rem; letter-spacing: 0; }
+th, td { text-align: left; padding: 14px 18px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 600; font-size: 0.75rem; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+tr:last-child td { border-bottom: 0; }
+td.n { font-family: var(--mono); font-size: 0.85rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.role { display: inline-block; font-size: 0.72rem; font-weight: 600; padding: 4px 8px; border-radius: 999px; white-space: nowrap; }
+.role.p { background: var(--ink); color: var(--bg); }
+.role.s { background: var(--accent-soft); color: var(--accent); }
+.role.g { border: 1px solid var(--line); color: var(--ink-2); }
+.hyp { font: 600 clamp(1.25rem, 2.4vw, 1.6rem)/1.3 var(--display); letter-spacing: -0.02em; max-width: 860px; }
+.rules { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px; }
+.rules > div { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.rules ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 8px; color: var(--ink-2); font-size: 0.95rem; letter-spacing: 0; }
+
+.sources { display: flex; flex-direction: column; gap: 8px; font-size: 0.85rem; color: var(--muted); letter-spacing: 0; }
+.sources ol { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
+footer { margin-top: 88px; padding-top: 28px; border-top: 1px solid var(--line); font-size: 0.8rem; color: var(--muted); display: flex; flex-direction: column; gap: 6px; letter-spacing: 0; }
+
+@media (max-width: 980px) {
+  .hero { grid-template-columns: 1fr; gap: 40px; }
+  .shots { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .evidence { grid-template-columns: 1fr; }
+}
+@media (max-width: 720px) {
+  .wrap { padding-block: 32px 64px; }
+  section { padding-block: 64px 0; }
+  .drops, .grid2, .acs, .rules { grid-template-columns: 1fr; }
+  .journey { grid-template-columns: 1fr; gap: 14px; }
+  .journey::before { left: 15px; right: auto; top: 6px; bottom: 6px; width: 2px; height: auto; }
+  .jstep { flex-direction: row; text-align: left; align-items: center; gap: 14px; padding: 0; }
+  .jstep > div { display: flex; flex-direction: column; }
+  .jdot { flex: none; }
+  .brow, .axis { grid-template-columns: minmax(0, 1fr) 48px; }
+  .brow .btrack { grid-column: 1 / -1; grid-row: 2; }
+  .axis > :first-child, .axis > :last-child { display: none; }
+  .axis { grid-template-columns: 1fr; }
+  .facts { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 460px) {
+  .shots { grid-template-columns: 1fr; }
+  .shot-frame { max-width: 300px; }
+  .stat { grid-template-columns: 1fr; gap: 4px; }
+}
+
+/* =====================================================================
+   PROTOTYPE (single deliberate look: the app's own light UI)
+   ===================================================================== */
+.iphone { position: absolute; inset: 0; border-radius: 64px; background: #1a1a1c; padding: 12px; box-shadow: 0 0 0 1.5px #3a3a3c inset, 0 0 0 1px rgba(0,0,0,.4), 0 40px 80px -30px rgba(0,0,0,.55); }
+.screen { position: relative; width: 390px; height: 844px; border-radius: 52px; overflow: hidden; background: #f4f1ea; color: #1d1d1f; font-family: var(--sans); letter-spacing: -0.01em; user-select: none; -webkit-user-select: none; isolation: isolate; }
+.island { position: absolute; top: 11px; left: 50%; width: 124px; height: 36px; margin-left: -62px; border-radius: 20px; background: #000; z-index: 60; }
+.sbar { position: absolute; top: 0; left: 0; right: 0; height: 54px; display: flex; justify-content: space-between; align-items: center; padding: 6px 34px 0 46px; font: 600 16px/1 var(--sans); z-index: 55; color: #1d1d1f; pointer-events: none; }
+.sbar .ic { display: flex; gap: 6px; align-items: center; }
+.homebar { position: absolute; bottom: 8px; left: 50%; width: 136px; height: 5px; margin-left: -68px; border-radius: 3px; background: #1d1d1f; z-index: 70; opacity: .85; pointer-events: none; }
+.view { position: absolute; inset: 0; display: flex; flex-direction: column; }
+.view[hidden] { display: none !important; }
+
+/* Welcome */
+.welcome { background: radial-gradient(120% 70% at 50% 0%, #fff6e6 0%, #f4f1ea 60%); padding: 120px 28px 54px; align-items: center; text-align: center; gap: 0; }
+.wtiles { display: flex; gap: 8px; margin-bottom: 34px; height: 64px; }
+.wtile { width: 58px; height: 64px; border-radius: 12px; background: linear-gradient(#f9d391, #eba94f); box-shadow: inset 0 -4px 0 #c7832f, 0 6px 14px -6px rgba(120,70,10,.5); display: grid; place-items: center; font: 800 32px/1 var(--display); color: #3b2508; position: relative; touch-action: none; cursor: grab; will-change: transform; }
+.wtile sub { position: absolute; right: 6px; bottom: 7px; font: 700 10px/1 var(--sans); }
+.wtitle { font: 700 34px/1.08 var(--display); letter-spacing: -0.035em; }
+.wsub { margin-top: 12px; font-size: 17px; line-height: 1.45; color: #55555a; max-width: 290px; }
+.wspacer { flex: 1; }
+.cta { appearance: none; border: 0; width: 100%; height: 56px; border-radius: 16px; background: #2463eb; color: #fff; font: 600 18px/1 var(--sans); letter-spacing: -0.01em; cursor: pointer; transition: transform 100ms ease-out, filter 100ms; box-shadow: 0 10px 24px -12px rgba(36,99,235,.8); }
+.cta:active { transform: scale(0.97); filter: brightness(.95); }
+.link-btn { appearance: none; border: 0; background: none; color: #2463eb; font: 500 16px/1 var(--sans); padding: 16px; cursor: pointer; }
+.link-btn:active { opacity: .55; }
+.wnote { font-size: 13px; color: #86868b; }
+
+/* Matching */
+.matching { background: #f4f1ea; align-items: center; justify-content: center; text-align: center; padding: 0 34px; gap: 18px; }
+.radar { position: relative; width: 132px; height: 132px; display: grid; place-items: center; }
+.radar::before, .radar::after { content: ""; position: absolute; inset: 0; border-radius: 50%; border: 2px solid rgba(36,99,235,.35); animation: ping 1.6s ease-out infinite; }
+.radar::after { animation-delay: .8s; }
+@keyframes ping { from { transform: scale(.55); opacity: 1; } to { transform: scale(1.25); opacity: 0; } }
+.av { border-radius: 50%; display: grid; place-items: center; color: #fff; font: 700 22px/1 var(--display); }
+.av.sam { background: linear-gradient(135deg, #7b61ff, #2a9df4); }
+.av.you { background: linear-gradient(135deg, #f7b955, #e5862a); color: #3b2508; }
+.mtitle { font: 700 26px/1.15 var(--display); letter-spacing: -0.03em; }
+.mcard { width: 100%; background: rgba(255,255,255,.75); border-radius: 20px; padding: 16px; display: flex; gap: 14px; align-items: center; text-align: left; box-shadow: 0 10px 30px -18px rgba(0,0,0,.35); }
+.mcard .who { font: 600 17px/1.2 var(--sans); }
+.mcard .sub { font-size: 13px; color: #6e6e73; margin-top: 3px; line-height: 1.35; }
+.live { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #2fb457; margin-right: 5px; vertical-align: 0; box-shadow: 0 0 0 3px rgba(47,180,87,.18); }
+
+/* Game */
+.game { background: #f4f1ea; }
+.ghead { position: relative; z-index: 20; padding: 54px 16px 10px; background: rgba(255,255,255,.72); -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%); border-bottom: 1px solid rgba(0,0,0,.06); }
+.scores { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; }
+.player { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.player.r { flex-direction: row-reverse; text-align: right; }
+.player .av { width: 40px; height: 40px; font-size: 17px; flex: none; }
+.player .nm { font-size: 13px; color: #6e6e73; line-height: 1.2; white-space: nowrap; }
+.player .sc { font: 700 24px/1.05 var(--display); letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.player.active .av { box-shadow: 0 0 0 3px #f4f1ea, 0 0 0 5px #2463eb; }
+.turn { font: 600 12px/1 var(--sans); padding: 7px 10px; border-radius: 999px; background: #1d1d1f; color: #fff; white-space: nowrap; display: flex; gap: 6px; align-items: center; }
+.turn.wait { background: #e8e5de; color: #55555a; }
+.dots i { display: inline-block; width: 4px; height: 4px; border-radius: 50%; background: currentColor; margin-left: 2px; animation: blink 1.2s infinite both; }
+.dots i:nth-child(2) { animation-delay: .2s; } .dots i:nth-child(3) { animation-delay: .4s; }
+@keyframes blink { 0%, 80%, 100% { opacity: .25; } 40% { opacity: 1; } }
+.lastmove { margin-top: 8px; font-size: 12.5px; color: #55555a; text-align: center; height: 16px; line-height: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.boardwrap { padding: 10px 4px 0; }
+.board { display: grid; grid-template-columns: repeat(15, 1fr); gap: 1.5px; touch-action: none; }
+.cell { aspect-ratio: 1; border-radius: 4px; background: #e6e2da; display: grid; place-items: center; font: 800 8.5px/1 var(--sans); color: #fff; letter-spacing: -0.02em; position: relative; }
+.cell.DL { background: #3d8ad6; } .cell.TL { background: #5aa83f; } .cell.DW { background: #d9544f; } .cell.TW { background: #ea8a2b; }
+.cell.star { background: #8a5cd1; }
+.cell.star::after { content: "★"; font-size: 12px; }
+.cell.hot { box-shadow: inset 0 0 0 2px #2463eb; background-color: #cfe0ff; }
+.cell.pulse::before { content: ""; position: absolute; inset: -3px; border-radius: 6px; border: 2px solid #8a5cd1; animation: pulse 1.4s ease-in-out infinite; }
+@keyframes pulse { 0%, 100% { opacity: .2; transform: scale(.9); } 50% { opacity: 1; transform: scale(1.05); } }
+.msg { height: 34px; display: flex; align-items: center; justify-content: center; font-size: 13.5px; font-weight: 500; color: #55555a; padding: 0 16px; text-align: center; will-change: transform; }
+.msg.err { color: #c0362c; }
+.msg.ok { color: #1d7a3a; }
+.rackwrap { position: relative; margin: 0 12px; height: 66px; border-radius: 18px; background: rgba(255,255,255,.6); box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 1px 2px rgba(0,0,0,.06); }
+.bag { text-align: center; font-size: 11.5px; color: #86868b; margin-top: 6px; }
+.actions { margin-top: auto; padding: 10px 14px 30px; display: grid; grid-template-columns: 1fr 1fr 1.6fr 1fr 1fr; gap: 6px; align-items: center; background: rgba(255,255,255,.72); -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%); border-top: 1px solid rgba(0,0,0,.06); }
+.act { appearance: none; border: 0; background: none; display: flex; flex-direction: column; align-items: center; gap: 4px; font: 500 11px/1 var(--sans); color: #3a3a3c; padding: 6px 0; cursor: pointer; border-radius: 12px; transition: transform 100ms ease-out, opacity 150ms; position: relative; }
+.act:active { transform: scale(0.92); }
+.act:disabled { opacity: .35; cursor: default; }
+.act svg { width: 24px; height: 24px; }
+.act .badge { position: absolute; top: 0; right: 14px; min-width: 16px; height: 16px; border-radius: 8px; background: #2463eb; color: #fff; font: 700 10px/16px var(--sans); padding: 0 4px; }
+.act.glow { color: #2463eb; }
+.act.glow::after { content: ""; position: absolute; inset: -2px 6px; border-radius: 14px; box-shadow: 0 0 0 2px #2463eb; animation: pulse 1.4s ease-in-out infinite; }
+.play { appearance: none; border: 0; height: 50px; border-radius: 25px; background: #2463eb; color: #fff; font: 700 17px/1 var(--sans); letter-spacing: 0.02em; cursor: pointer; transition: transform 100ms ease-out, background 150ms, box-shadow 150ms; box-shadow: 0 8px 18px -10px rgba(36,99,235,.9); }
+.play:active { transform: scale(0.95); }
+.play.off { background: #c9c6bf; box-shadow: none; }
+
+/* Tiles */
+.layer { position: absolute; inset: 0; pointer-events: none; z-index: 30; }
+.tile { position: absolute; left: 0; top: 0; width: 44px; height: 48px; border-radius: 9px; background: linear-gradient(#fad9a0, #eeae55); box-shadow: inset 0 -3.5px 0 #c98632, 0 2px 4px rgba(120,70,10,.25); display: grid; place-items: center; font: 800 25px/1 var(--display); color: #3b2508; pointer-events: auto; touch-action: none; cursor: grab; will-change: transform; border: 0; padding: 0; transition: box-shadow 150ms; }
+.tile sub { position: absolute; right: 5px; bottom: 6px; font: 700 10px/1 var(--sans); }
+.tile.lift { box-shadow: inset 0 -3.5px 0 #c98632, 0 16px 24px -8px rgba(80,45,5,.45); cursor: grabbing; }
+.tile.sel { box-shadow: inset 0 -3.5px 0 #c98632, 0 0 0 3px #2463eb; }
+.tile.pending { background: linear-gradient(#ffe7bd, #f6c071); }
+.tile.locked { pointer-events: none; cursor: default; }
+.tile.sam { background: linear-gradient(#f3d6a8, #e2a75c); }
+.tile.fresh::after { content: ""; position: absolute; inset: -3px; border-radius: 11px; box-shadow: 0 0 0 3px rgba(123,97,255,.7); }
+.pts { position: absolute; z-index: 40; left: 0; top: 0; min-width: 26px; height: 22px; padding: 0 7px; border-radius: 11px; background: #2463eb; color: #fff; font: 700 12px/22px var(--sans); text-align: center; pointer-events: none; box-shadow: 0 4px 10px -4px rgba(36,99,235,.8); will-change: transform; }
+
+/* Coach bubble */
+.coach { position: absolute; z-index: 45; left: 16px; right: 16px; padding: 14px 16px 12px; border-radius: 18px; background: rgba(29,29,31,.88); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); color: #fff; font-size: 14.5px; line-height: 1.4; box-shadow: 0 14px 30px -12px rgba(0,0,0,.5); transform-origin: 50% 100%; will-change: transform, opacity; }
+.coach .step { font: 600 11px/1 var(--sans); color: #a7c4ff; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 6px; }
+.coach .row { display: flex; justify-content: flex-end; gap: 4px; margin-top: 8px; }
+.coach button { appearance: none; border: 0; background: none; color: #a7c4ff; font: 600 13.5px/1 var(--sans); padding: 6px 8px; cursor: pointer; border-radius: 8px; }
+.coach button:active { opacity: .55; }
+.coach .arrow { position: absolute; width: 14px; height: 14px; background: inherit; transform: rotate(45deg); bottom: -6px; left: 50%; margin-left: -7px; border-radius: 2px; }
+.coach.below .arrow { bottom: auto; top: -6px; }
+.coach .k { display: inline-block; padding: 1px 5px; border-radius: 4px; font: 800 10px/1.4 var(--sans); color: #fff; vertical-align: 1px; }
+
+/* Sheet */
+.scrim { position: absolute; inset: 0; z-index: 80; background: #000; opacity: 0; pointer-events: none; }
+.scrim.on { pointer-events: auto; }
+.sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 90; padding: 10px 22px 40px; border-radius: 30px 30px 0 0; background: rgba(250,249,246,.92); -webkit-backdrop-filter: blur(24px) saturate(180%); backdrop-filter: blur(24px) saturate(180%); box-shadow: 0 -10px 40px -10px rgba(0,0,0,.3); display: flex; flex-direction: column; gap: 12px; will-change: transform; touch-action: none; }
+.grab { width: 40px; height: 5px; border-radius: 3px; background: #c7c7cc; margin: 0 auto 6px; }
+.sheet h4 { margin: 4px 0 0; font: 700 24px/1.15 var(--display); letter-spacing: -0.03em; }
+.sheet p { margin: 0; font-size: 15px; line-height: 1.45; color: #55555a; }
+.sbtn { appearance: none; height: 50px; border-radius: 14px; border: 0; font: 600 16px/1 var(--sans); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: transform 100ms ease-out; }
+.sbtn:active { transform: scale(0.97); }
+.sbtn.apple { background: #000; color: #fff; }
+.sbtn.plain { background: #fff; color: #1d1d1f; box-shadow: inset 0 0 0 1px #d2d2d7; }
+.toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-radius: 14px; background: #fff; font-size: 15px; }
+.toggle small { display: block; color: #86868b; font-size: 12.5px; margin-top: 2px; }
+.switch { appearance: none; flex: none; width: 51px; height: 31px; border-radius: 16px; background: #e9e9eb; position: relative; cursor: pointer; transition: background 200ms; border: 0; }
+.switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 27px; height: 27px; border-radius: 50%; background: #fff; box-shadow: 0 3px 8px rgba(0,0,0,.15); transition: transform 250ms cubic-bezier(.3,1.3,.5,1); }
+.switch[aria-checked="true"] { background: #34c759; }
+.switch[aria-checked="true"]::after { transform: translateX(20px); }
+
+/* Summary + toast */
+.summary { position: absolute; inset: 0; z-index: 95; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgba(244,241,234,.55); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+.summary[hidden] { display: none; }
+.scard { width: 100%; background: #fff; border-radius: 28px; padding: 26px 22px 18px; box-shadow: 0 30px 60px -24px rgba(0,0,0,.4); display: flex; flex-direction: column; gap: 14px; text-align: center; will-change: transform, opacity; }
+.scard h4 { margin: 0; font: 700 24px/1.15 var(--display); letter-spacing: -0.03em; }
+.sgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.sgrid div { background: #f4f1ea; border-radius: 14px; padding: 12px 8px; }
+.sgrid b { display: block; font: 700 22px/1.1 var(--display); letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.sgrid span { font-size: 11.5px; color: #6e6e73; }
+.zero { font-size: 13px; color: #55555a; line-height: 1.45; }
+.toast { position: absolute; left: 50%; top: 60px; z-index: 99; max-width: 320px; transform: translateX(-50%); padding: 10px 16px; border-radius: 16px; background: rgba(29,29,31,.88); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); color: #fff; font-size: 13.5px; line-height: 1.35; text-align: center; opacity: 0; pointer-events: none; transition: opacity 200ms, transform 300ms cubic-bezier(.2,.9,.3,1); }
+.toast.on { opacity: 1; transform: translate(-50%, 6px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .radar::before, .radar::after, .cell.pulse::before, .act.glow::after, .dots i { animation: none; }
+  .toast { transition: opacity 200ms; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .ghead, .actions, .sheet, .coach, .toast, .summary { -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .ghead, .actions { background: #fff; } .sheet { background: #faf9f6; } .coach, .toast { background: #1d1d1f; } .summary { background: rgba(244,241,234,.92); }
+}
+</style>
+
+<div class="wrap">
+
+<!-- ================= HERO ================= -->
+<header class="hero">
+  <div class="hero-copy">
+    <span class="eyebrow">Product case study · October 2026</span>
+    <h1>Words With Friends FTUE Redesign</h1>
+    <p class="lede">A teardown of the first five minutes of Words With Friends, checked against 450 recent App Store reviews and public benchmarks, and a redesigned first match you can play on the right.</p>
+    <div class="facts">
+      <div class="fact"><b>58%</b><span>of recent 1–2★ reviews complain about ads</span></div>
+      <div class="fact"><b>2.5M→1.6M</b><span>US active users, Q2 to Q4 2025 (Sensor Tower est.)</span></div>
+      <div class="fact"><b>27%</b><span>D1 retention of a top-quartile mobile game (GameAnalytics)</span></div>
+    </div>
+    <div class="try">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11V5a2 2 0 1 1 4 0v6"/><path d="M13 10a2 2 0 1 1 4 0v2a2 2 0 1 1 4 0v2a8 8 0 0 1-8 8h-1a8 8 0 0 1-6.6-3.5L3 15a2 2 0 0 1 3.2-2.4L9 15"/></svg>
+      <span><b>Play the prototype.</b> Drag tiles onto the board (or tap a tile, then a square), play a word, and get a reply from your opponent. It uses a real 80,000-word dictionary and real Words With Friends scoring.</span>
+    </div>
+    <div class="meta"><span>By <a href="https://www.linkedin.com/in/zackariah-telsem-a8b245246/">Zackariah Telsem</a></span><span>Role: Product Manager (independent project)</span><span>Scope: first open → first match → D1</span><span>Platform: iOS</span></div>
+  </div>
+  <div class="device-col">
+    <div class="device-fit" id="deviceFit">
+      <div class="device" id="device">
+        <div class="iphone">
+          <div class="screen" id="screen">
+            <div class="island"></div>
+            <div class="sbar"><span>9:41</span><span class="ic">
+              <svg width="18" height="12" viewBox="0 0 18 12" aria-hidden="true"><rect x="0" y="8" width="3" height="4" rx="1" fill="currentColor"/><rect x="5" y="5" width="3" height="7" rx="1" fill="currentColor"/><rect x="10" y="2.5" width="3" height="9.5" rx="1" fill="currentColor"/><rect x="15" y="0" width="3" height="12" rx="1" fill="currentColor"/></svg>
+              <svg width="16" height="12" viewBox="0 0 16 12" aria-hidden="true"><path d="M8 11.5 5.6 9a3.4 3.4 0 0 1 4.8 0L8 11.5Zm-4.2-4.3L2.2 5.6a8.2 8.2 0 0 1 11.6 0l-1.6 1.6a5.9 5.9 0 0 0-8.4 0ZM.6 4 0 3.4a11.3 11.3 0 0 1 16 0L15.4 4 14.8 3.4" fill="currentColor"/></svg>
+              <svg width="27" height="13" viewBox="0 0 27 13" aria-hidden="true"><rect x=".5" y=".5" width="23" height="12" rx="3.5" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="17" height="9" rx="2" fill="currentColor"/><rect x="24.5" y="4.5" width="2" height="4" rx="1" fill="currentColor" opacity=".4"/></svg>
+            </span></div>
+
+            <!-- Welcome -->
+            <div class="view welcome" id="vWelcome">
+              <div class="wtiles" id="wtiles"></div>
+              <div class="wtitle">Make your first word in under a minute.</div>
+              <p class="wsub">No sign-up. We'll pair you with a player who's online now.</p>
+              <div class="wspacer"></div>
+              <button class="cta" id="btnStart">Play your first word</button>
+              <button class="link-btn" id="btnHave">I already have an account</button>
+              <span class="wnote">Psst, the tiles above are draggable.</span>
+            </div>
+
+            <!-- Matching -->
+            <div class="view matching" id="vMatch" hidden>
+              <div class="radar"><div class="av sam" style="width:72px;height:72px;font-size:28px">S</div></div>
+              <div class="mtitle" id="mTitle">Finding a quick player…</div>
+              <div class="mcard" id="mCard" style="opacity:0">
+                <div class="av sam" style="width:48px;height:48px;flex:none">S</div>
+                <div><div class="who">Sam R. · Level 2</div><div class="sub"><span class="live"></span>Online now · usually plays back in about a minute</div></div>
+              </div>
+              <button class="link-btn" id="btnInvite" style="font-size:15px">Invite a friend instead</button>
+            </div>
+
+            <!-- Game -->
+            <div class="view game" id="vGame" hidden>
+              <div class="ghead">
+                <div class="scores">
+                  <div class="player active" id="pYou"><div class="av you">G</div><div><div class="nm">You · Guest</div><div class="sc num" id="scYou">0</div></div></div>
+                  <div class="turn" id="turn">Your turn</div>
+                  <div class="player r" id="pSam"><div class="av sam" id="samAv">S</div><div><div class="nm">Sam R.</div><div class="sc num" id="scSam">0</div></div></div>
+                </div>
+                <div class="lastmove" id="lastMove">You go first. No ads in your first match.</div>
+              </div>
+              <div class="boardwrap"><div class="board" id="board" aria-label="Game board"></div></div>
+              <div class="msg" id="msg" aria-live="polite"></div>
+              <div class="rackwrap" id="rack" aria-label="Your letters"></div>
+              <div class="bag" id="bag">88 letters left</div>
+              <div class="actions">
+                <button class="act" id="aSwap" aria-label="Swap letters"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4 3 8l4 4"/><path d="M3 8h13a4 4 0 0 1 4 4"/><path d="m17 20 4-4-4-4"/><path d="M21 16H8a4 4 0 0 1-4-4"/></svg>Swap</button>
+                <button class="act" id="aShuffle" aria-label="Shuffle rack"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="m15 15 6 6"/><path d="M4 4l5 5"/></svg>Shuffle</button>
+                <button class="play off" id="aPlay">PLAY</button>
+                <button class="act" id="aRecall" aria-label="Recall tiles" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>Recall</button>
+                <button class="act" id="aHint" aria-label="Hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.3h6c0-1 .4-1.8 1-2.3A7 7 0 0 0 12 2Z"/></svg>Hint<span class="badge" id="hintBadge">1</span></button>
+              </div>
+              <div class="layer" id="layer"></div>
+            </div>
+
+            <div class="scrim" id="scrim"></div>
+            <div class="sheet" id="sheet" hidden role="dialog" aria-label="Save your progress">
+              <div class="grab"></div>
+              <h4>Save your game with Sam</h4>
+              <p>You're 2 turns in. Save your progress so this game follows you to any device.</p>
+              <button class="sbtn apple" data-save="Apple"><svg width="16" height="18" viewBox="0 0 16 19" aria-hidden="true"><path fill="currentColor" d="M13.3 10.1c0-2.4 2-3.6 2.1-3.6-1.1-1.7-2.9-1.9-3.5-1.9-1.5-.2-2.9.9-3.7.9-.8 0-1.9-.9-3.2-.8C3.3 4.7 1.7 5.7.9 7.2c-1.7 3-.4 7.3 1.2 9.7.8 1.2 1.8 2.5 3 2.4 1.2 0 1.7-.8 3.1-.8 1.5 0 1.9.8 3.2.8 1.3 0 2.2-1.2 3-2.4.9-1.4 1.3-2.7 1.3-2.8-.1 0-2.4-.9-2.4-3.9ZM10.9 3c.7-.8 1.1-1.9 1-3-1 0-2.1.6-2.8 1.4-.6.7-1.2 1.8-1 2.9 1 .1 2.1-.5 2.8-1.3Z"/></svg>Continue with Apple</button>
+              <button class="sbtn plain" data-save="email">Continue with email</button>
+              <div class="toggle"><div>Tell me when Sam plays<small>One notification per move. Change it anytime.</small></div><button class="switch" id="notif" role="switch" aria-checked="true" aria-label="Notify me when Sam plays"></button></div>
+              <button class="link-btn" data-save="later" style="padding:6px">Not now</button>
+            </div>
+
+            <div class="summary" id="summary" hidden>
+              <div class="scard" id="scard">
+                <h4>That was the new first session</h4>
+                <div class="sgrid">
+                  <div><b id="sTime">0:00</b><span>Time to first word</span></div>
+                  <div><b id="sWords">0</b><span>Words you played</span></div>
+                  <div><b id="sScore">0–0</b><span>You vs Sam</span></div>
+                  <div><b id="sSaved">Later</b><span>Progress saved</span></div>
+                </div>
+                <p class="zero">Before your first word: <b>0</b> sign-up screens, <b>0</b> mode pickers, <b>0</b> ads, <b>1</b> button.</p>
+                <button class="cta" id="btnKeep" style="height:50px;font-size:17px">Keep playing</button>
+                <button class="link-btn" id="btnAgain" style="padding:8px">Start over</button>
+              </div>
+            </div>
+
+            <div class="toast" id="toast" role="status"></div>
+            <div class="homebar"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="device-ctrl">
+      <button class="pill-btn" id="btnRestart">Restart prototype</button>
+      <span class="small muted">Works with a mouse, trackpad or touch.</span>
+    </div>
+  </div>
+</header>
+
+<!-- ================= TEARDOWN ================= -->
+<section id="today">
+  <div class="sec-head">
+    <span class="eyebrow">01 · Today's first session</span>
+    <h2>Four screens, captured within a minute, on iOS (v61, October 2026).</h2>
+    <p class="lede">Getting in is already fast: no sign-up wall, guest play, and an opponent labeled "Plays Back Quickly." The problem is what each screen asks of someone who has never played.</p>
+  </div>
+  <div class="shots">
+    <figure class="shot" style="margin:0">
+      <div class="shot-frame"><img src="assets/wwf-today-1.webp" alt="Words With Friends welcome modal asking which mode to try first, over the home screen, with an invite banner on top" width="471" height="1024" loading="lazy">
+        <span class="mark" style="left:88%;top:10.5%">1</span><span class="mark" style="left:50%;top:31%">2</span><span class="mark" style="left:8%;top:22%">3</span></div>
+      <span class="t">00:00 · First open</span>
+      <h3>Welcome</h3>
+      <ol>
+        <li><i>1</i>An invite banner with its own Play button sits on top of the welcome screen.</li>
+        <li><i>2</i>A new player is asked to pick between Classic and Word Search before knowing either.</li>
+        <li><i>3</i>Behind the modal: Rewards Pass, goals, a Wheel of Fortune event, Match of the Day and five tabs. More than 10 things to tap before one word.</li>
+      </ol>
+    </figure>
+    <figure class="shot" style="margin:0">
+      <div class="shot-frame"><img src="assets/wwf-today-2.webp" alt="Another Challenger screen showing Guest versus a level 13 opponent labeled Plays Back Quickly" width="471" height="1024" loading="lazy">
+        <span class="mark" style="left:76%;top:41%">4</span><span class="mark" style="left:50%;top:84%">5</span></div>
+      <span class="t">00:10 · Matchmaking</span>
+      <h3>Challenger</h3>
+      <ol>
+        <li class="good"><i>4</i>Good: guest play and a fast-reply opponent. Zynga already treats opponent latency as a problem.</li>
+        <li><i>5</i>A full screen with one button adds a tap. The level 1 vs level 13 badges frame it as a mismatch.</li>
+      </ol>
+    </figure>
+    <figure class="shot" style="margin:0">
+      <div class="shot-frame"><img src="assets/wwf-today-3.webp" alt="The game board with the opponent's first word already played and three boost icons with badges" width="471" height="1024" loading="lazy">
+        <span class="mark" style="left:50%;top:23.5%">6</span><span class="mark" style="left:50%;top:27.6%">7</span><span class="mark" style="left:50%;top:93%">8</span></div>
+      <span class="t">00:20 · Board</span>
+      <h3>First look at the board</h3>
+      <ol>
+        <li><i>6</i>The opponent has already moved. The first word a new player sees was chosen by someone else.</li>
+        <li><i>7</i>Three boosts with "3" badges, a coin balance, and 60+ bonus squares. None of them are explained.</li>
+        <li><i>8</i>Five actions get equal weight. Nothing says "drag letters here."</li>
+      </ol>
+    </figure>
+    <figure class="shot" style="margin:0">
+      <div class="shot-frame"><img src="assets/wwf-today-4.webp" alt="First move attempt showing a casino banner ad at the top, an invalid word message and a 16 point preview" width="471" height="1024" loading="lazy">
+        <span class="mark" style="left:50%;top:9%">9</span><span class="mark" style="left:74%;top:53%">10</span><span class="mark" style="left:20%;top:84%">11</span></div>
+      <span class="t">00:50 · First move</span>
+      <h3>First move</h3>
+      <ol>
+        <li><i>9</i>A real-money casino banner ad shows during the first turn, before the app knows anything about the player.</li>
+        <li><i>10</i>"MEDI is not a valid word" shows inline (good), but a 16-point badge still promises a score.</li>
+        <li><i>11</i>The rack is left with E, E, E and no prompt about Swap or a hint.</li>
+      </ol>
+    </figure>
+  </div>
+  <p class="small muted col">Screenshots from a fresh install. Other players' photos are blurred.</p>
+</section>
+
+<!-- ================= EVIDENCE ================= -->
+<section id="evidence">
+  <div class="sec-head">
+    <span class="eyebrow">02 · What players say</span>
+    <h2>Ads come up in more than half of recent negative reviews.</h2>
+    <p class="lede">I pulled the 450 most recent US App Store reviews (Jul 21 – Oct 3, 2026) from Apple's public review feed and keyword-coded the 243 one- and two-star reviews by theme. A review can match more than one theme.</p>
+  </div>
+  <div class="evidence">
+    <div class="chart">
+      <div class="legend"><span><i style="background:var(--accent-fill)"></i>Shows up in the first session</span><span><i style="background:var(--other-fill)"></i>Later in the game</span></div>
+      <div class="bars" role="img" aria-label="Share of 243 one and two star reviews by theme: ads 57.6%, coins and paywalls 30.0%, bugs 16.0%, bots and opponent quality 10.7%, sign-in and account 9.9%, unfair tile draws 4.5%, dictionary 1.6%, learning and onboarding 0.8%">
+        <div class="brow" title="140 of 243 reviews"><span class="lbl">Ads interrupt play</span><div class="btrack"><div class="bfill" style="width:57.6%"></div></div><span class="val">57.6%</span></div>
+        <div class="brow other" title="73 of 243 reviews"><span class="lbl">Coins, rewards &amp; paywalls</span><div class="btrack"><div class="bfill" style="width:30%"></div></div><span class="val">30.0%</span></div>
+        <div class="brow other" title="39 of 243 reviews"><span class="lbl">Bugs, freezes &amp; slowness</span><div class="btrack"><div class="bfill" style="width:16%"></div></div><span class="val">16.0%</span></div>
+        <div class="brow" title="26 of 243 reviews"><span class="lbl">Bots &amp; opponent quality</span><div class="btrack"><div class="bfill" style="width:10.7%"></div></div><span class="val">10.7%</span></div>
+        <div class="brow" title="24 of 243 reviews"><span class="lbl">Sign-in &amp; account</span><div class="btrack"><div class="bfill" style="width:9.9%"></div></div><span class="val">9.9%</span></div>
+        <div class="brow" title="11 of 243 reviews"><span class="lbl">Unfair tiles / rigged draws</span><div class="btrack"><div class="bfill" style="width:4.5%"></div></div><span class="val">4.5%</span></div>
+        <div class="brow" title="4 of 243 reviews"><span class="lbl">Dictionary &amp; word validity</span><div class="btrack"><div class="bfill" style="width:1.6%"></div></div><span class="val">1.6%</span></div>
+        <div class="brow" title="2 of 243 reviews"><span class="lbl">Learning &amp; onboarding</span><div class="btrack"><div class="bfill" style="width:0.8%"></div></div><span class="val">0.8%</span></div>
+      </div>
+      <div class="axis"><span></span><div><span>0%</span><span>20%</span><span>40%</span><span>60%</span></div><span></span></div>
+      <p class="small muted">Few reviews mention onboarding. That fits: people who quit in the first five minutes rarely write reviews, so retention data has to answer that question. That's what the A/B test is for.</p>
+    </div>
+    <div class="stats">
+      <div class="stat"><b>27</b><span>negative reviews say an ad plays after every move, turn or word.<small>App Store reviews, Jul–Oct 2026</small></span></div>
+      <div class="stat"><b>4.57★</b><span>average rating from 751,936 App Store ratings. Long-time players like the game; the complaints are about what surrounds it.<small>Apple App Store, Oct 4, 2026</small></span></div>
+      <div class="stat"><b>−36%</b><span>US active users, about 2.5M in Q2 2025 down to about 1.6M at the end of Q4 2025. Weekly downloads run about 33K–46K.<small>Sensor Tower estimates</small></span></div>
+      <div class="stat"><b>26–28%</b><span>D1 retention for a top-quartile mobile game; 31–33% for top-quartile iOS games. Median D7 is under 4%.<small>GameAnalytics 2025 benchmarks, 11,600 games</small></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= DROP-OFFS ================= -->
+<section id="dropoffs">
+  <div class="sec-head">
+    <span class="eyebrow">03 · Where new players are likely to drop</span>
+    <h2>Four friction points between install and day 1.</h2>
+  </div>
+  <div class="journey" aria-label="New player journey">
+    <div class="jstep"><span class="jdot">↓</span><div><b>Install</b><span>App Store</span></div></div>
+    <div class="jstep hit"><span class="jdot">1</span><div><b>First open</b><span>Choice overload</span></div></div>
+    <div class="jstep hit"><span class="jdot">2</span><div><b>Board</b><span>Learn it alone</span></div></div>
+    <div class="jstep hit"><span class="jdot">3</span><div><b>First move</b><span>Dead-end turns</span></div></div>
+    <div class="jstep hit"><span class="jdot">4</span><div><b>Between turns</b><span>Ads before value</span></div></div>
+    <div class="jstep"><span class="jdot">D1</span><div><b>Return</b><span>Day-1 retention</span></div></div>
+  </div>
+  <div class="drops">
+    <article class="drop">
+      <div class="k"><i>1</i><h3>Choice overload on first open</h3></div>
+      <p>The first screen asks a new player to choose a mode, answer an invite, or explore events. Every option slows down the one thing that matters: placing a first word.</p>
+      <p class="ev">Evidence: screen 1 (callouts 1–3).</p>
+      <p class="fix"><b>Fix:</b> one button, "Play your first word." Modes, events and invites appear after the first word is played.</p>
+    </article>
+    <article class="drop">
+      <div class="k"><i>2</i><h3>A first match you have to figure out alone</h3></div>
+      <p>No coach marks for dragging tiles, bonus squares or the Play button. Boosts and coins are shown with no explanation. The opponent has already moved.</p>
+      <p class="ev">Evidence: screen 3 (callouts 6–8).</p>
+      <p class="fix"><b>Fix:</b> the new player moves first. Three short tips appear at the moment each one is needed, and each can be dismissed.</p>
+    </article>
+    <article class="drop">
+      <div class="k"><i>3</i><h3>Dead-end first turns</h3></div>
+      <p>An invalid word still shows a point preview, and a rack of three Es offers no way forward. "All vowels" racks are a recurring theme in reviews about rigged tiles.</p>
+      <p class="ev">Evidence: screen 4 (callouts 10–11); 11 reviews about unfair tiles.</p>
+      <p class="fix"><b>Fix:</b> a balanced opening rack that can always make a 4-letter word. No score preview on invalid words. A free hint is offered after two misses.</p>
+    </article>
+    <article class="drop">
+      <div class="k"><i>4</i><h3>Ads before value</h3></div>
+      <p>A casino banner shows during the first turn, and players describe an ad after every move. A new player meets the monetization before they've enjoyed the game.</p>
+      <p class="ev">Evidence: screen 4 (callout 9); ads in 57.6% of negative reviews.</p>
+      <p class="fix"><b>Fix:</b> no ads in the first match, and no real-money gambling ads before the player's age is known. Test the revenue cost against D7.</p>
+    </article>
+  </div>
+</section>
+
+<!-- ================= REDESIGN ================= -->
+<section id="redesign">
+  <div class="sec-head">
+    <span class="eyebrow">04 · The redesign</span>
+    <h2>One goal: a first word in under 60 seconds, against someone who plays back.</h2>
+    <p class="lede">The prototype at the top of this page is the redesigned flow. It's built to feel like a native app: tiles track your finger 1:1, carry your throw velocity into a spring, and can be grabbed again mid-flight.</p>
+  </div>
+  <div class="principles">
+    <div class="principle"><span class="tag">Purpose</span><h3>One button on first open</h3><p>"Play your first word" replaces the mode picker, invite banner and event tiles. Sign-in lives behind a text link for returning players.</p></div>
+    <div class="principle"><span class="tag">Familiarity</span><h3>Learn inside a real match</h3><p>Three tips, shown in context: drag to the star, bonus squares, tap Play. The real board, scoring and bonus colors are kept, so nothing has to be re-learned later.</p></div>
+    <div class="principle"><span class="tag">Feedback</span><h3>Validate as you place</h3><p>The point badge appears only when every word is valid. Errors name the problem ("Leave no gaps between letters"), and a free hint is offered after two misses.</p></div>
+    <div class="principle"><span class="tag">Responsibility</span><h3>Ask at the right moment</h3><p>Saving progress and notifications come after turn 2, tied to a reason ("Tell me when Sam plays"). Simulated opponents are labeled.</p></div>
+  </div>
+  <div class="stack">
+    <span class="label" style="color:var(--muted)">Things to try in the prototype</span>
+    <div class="checklist" id="checklist">
+      <span class="chip" data-k="drag"><span class="ck"></span>Drag a tile to the board</span>
+      <span class="chip" data-k="flick"><span class="ck"></span>Flick a tile back to the rack</span>
+      <span class="chip" data-k="invalid"><span class="ck"></span>Try an invalid word</span>
+      <span class="chip" data-k="hint"><span class="ck"></span>Use the free hint</span>
+      <span class="chip" data-k="play"><span class="ck"></span>Play a word</span>
+      <span class="chip" data-k="sheet"><span class="ck"></span>Swipe the save sheet away</span>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SPEC ================= -->
+<section id="spec">
+  <div class="sec-head">
+    <span class="eyebrow">05 · Product spec</span>
+    <h2>Guided First Match</h2>
+  </div>
+  <div class="spec">
+    <div class="grid2">
+      <div><span class="label">Problem</span><p>New players meet choices, unexplained systems and ads before they've played a word. US active users fell about 36% across the second half of 2025, so every new install has to count.</p></div>
+      <div><span class="label">Goal</span><p>Raise D1 retention of new installs by 2 points or more, with a median time to first word under 60 seconds and no loss in D7 retention.</p></div>
+    </div>
+    <div class="grid2">
+      <div><span class="label">In scope</span><ul>
+        <li>Single-button first open; modes and events unlock after the first word</li>
+        <li>New player moves first, with three contextual tips</li>
+        <li>Balanced opening rack and a free first hint</li>
+        <li>First opponent: online now, within 2 levels, labeled if simulated</li>
+        <li>Ad-free first match (test arm C)</li>
+        <li>Save-progress and notification prompt after turn 2</li>
+      </ul></div>
+      <div><span class="label">Out of scope</span><ul>
+        <li>Returning and reactivated players</li>
+        <li>Ad frequency after the first match</li>
+        <li>Store, coins, Rewards Pass and boost economy</li>
+        <li>Word Search and other solo modes</li>
+      </ul></div>
+    </div>
+    <div class="stack">
+      <span class="label">Acceptance criteria</span>
+      <div class="acs">
+        <div class="ac"><span class="id">AC1</span><p><em>Given</em> a first-time install, <em>when</em> the app opens, <em>then</em> one primary button ("Play your first word") is shown, with no mode picker, invite banner or event tiles.</p></div>
+        <div class="ac"><span class="id">AC2</span><p><em>Given</em> the player taps it, <em>then</em> a board loads within 3 s (p90), the player moves first, and tip 1 points to the center star.</p></div>
+        <div class="ac"><span class="id">AC3</span><p><em>Given</em> the opening rack, <em>then</em> it has 2–4 vowels and can make at least one common 4-letter word. No all-vowel or all-consonant rack in the first 3 turns.</p></div>
+        <div class="ac"><span class="id">AC4</span><p><em>Given</em> tiles are placed, <em>when</em> any formed word is invalid, <em>then</em> no point badge shows and the message names the word. After 2 invalid attempts, the free Hint is highlighted.</p></div>
+        <div class="ac"><span class="id">AC5</span><p><em>Given</em> a tip is showing, <em>when</em> the player taps "Hide tips", <em>then</em> all remaining tips are suppressed for this install and <code>ftue_tips_hidden</code> logs the step.</p></div>
+        <div class="ac"><span class="id">AC6</span><p><em>Given</em> matchmaking for a first match, <em>then</em> the opponent was active in the last 5 minutes and is within 2 levels. A simulated opponent is labeled "Practice partner."</p></div>
+        <div class="ac"><span class="id">AC7</span><p><em>Given</em> arm C, <em>when</em> fewer than 10 turns of the first match have been played, <em>then</em> no interstitial or banner ad renders.</p></div>
+        <div class="ac"><span class="id">AC8</span><p><em>Given</em> the player's second word is played, <em>then</em> the save sheet appears once, can be swiped away, and guest progress is kept either way.</p></div>
+      </div>
+    </div>
+    <div class="grid2">
+      <div><span class="label">Risks</span><ul>
+        <li>Fewer early impressions lower day-0 ad revenue</li>
+        <li>Too few online players at off-peak hours in small markets</li>
+        <li>Deferring events could reduce early Rewards Pass conversion</li>
+      </ul></div>
+      <div><span class="label">Mitigations</span><ul>
+        <li>Revenue guardrail; judge on 30-day revenue per install, not day 0</li>
+        <li>Fall back to a labeled practice partner after 10 s</li>
+        <li>Introduce events in session 2 with a one-time spotlight</li>
+      </ul></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= KPIs + TEST ================= -->
+<section id="test">
+  <div class="sec-head">
+    <span class="eyebrow">06 · KPIs and A/B test plan</span>
+    <h2>How we'd know it worked.</h2>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th>Metric</th><th>Definition</th><th>Target / benchmark</th><th>Role</th></tr></thead>
+    <tbody>
+      <tr><td>D1 retention</td><td>New installs who open the app on calendar day 1 ÷ new installs</td><td class="n">+2 pts vs control</td><td><span class="role p">Primary</span></td></tr>
+      <tr><td>Time to first word</td><td>Median seconds from first open to first valid word played</td><td class="n">&lt; 60 s</td><td><span class="role s">Secondary</span></td></tr>
+      <tr><td>First-word rate</td><td>Installs who play a valid word in session 1 ÷ installs</td><td class="n">Up vs control</td><td><span class="role s">Secondary</span></td></tr>
+      <tr><td>Tip completion</td><td>Players who finish all 3 tips ÷ players shown tip 1</td><td class="n">≥ 80%</td><td><span class="role s">Secondary</span></td></tr>
+      <tr><td>D7 retention</td><td>New installs who open the app on day 7 ÷ new installs</td><td class="n">No drop &gt; 0.5 pts</td><td><span class="role g">Guardrail</span></td></tr>
+      <tr><td>Revenue per install</td><td>Ad + IAP revenue per new install, first 7 days</td><td class="n">No drop &gt; 5%</td><td><span class="role g">Guardrail</span></td></tr>
+      <tr><td>Crash-free sessions</td><td>New-user sessions without a crash ÷ sessions</td><td class="n">No drop &gt; 0.2 pts</td><td><span class="role g">Guardrail</span></td></tr>
+    </tbody>
+  </table></div>
+  <p class="hyp">If new players get one clear button, learn inside a real first match, and don't see ads until it ends, D1 retention rises by at least 2 points, because they reach a played word sooner and leave with a game in progress.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Arm</th><th>Experience</th><th>What it isolates</th></tr></thead>
+    <tbody>
+      <tr><td><b>A · Control</b></td><td>Today's flow</td><td>Baseline</td></tr>
+      <tr><td><b>B · Guided first match</b></td><td>Single-button open, player moves first, 3 tips, balanced rack, free hint, save prompt after turn 2</td><td>Effect of the onboarding changes (friction points 1–3)</td></tr>
+      <tr><td><b>C · Guided + ad-free</b></td><td>B, plus no ads until the first match ends or 10 turns</td><td>Added effect of delaying ads (point 4), and what it costs</td></tr>
+    </tbody>
+  </table></div>
+  <div class="rules">
+    <div><span class="label">Design</span><ul>
+      <li><b>Unit:</b> new installs, randomized by device at first open, split 1:1:1</li>
+      <li><b>Baseline:</b> 27% D1, the GameAnalytics top-quartile benchmark. Replace with the internal baseline before launch.</li>
+      <li><b>Sample:</b> about 9,600 installs per arm (28,800 total) to detect +2 pts at 80% power, two-sided α = 0.025 per comparison (Bonferroni for 2 comparisons). That's roughly a week of US downloads at Sensor Tower's estimates.</li>
+      <li><b>Duration:</b> enroll for 14 days to cover two weekly cycles, then wait 7 more days for D7.</li>
+      <li><b>Checks:</b> daily sample-ratio test; no early reads of the primary metric.</li>
+    </ul></div>
+    <div><span class="label">Decision rules</span><ul>
+      <li><b>Ship C</b> if D1 rises 2+ pts vs A (p &lt; 0.025) and every guardrail holds.</li>
+      <li><b>Ship B</b> if B wins but C fails the revenue guardrail. Then test a shorter ad-free window, such as 5 turns.</li>
+      <li><b>Iterate</b> if time to first word drops but D1 doesn't move. Next, look at the wait between turns 1 and 2.</li>
+      <li><b>Stop</b> early only if crash-free sessions or D1 in any arm falls more than 2 pts below control.</li>
+    </ul></div>
+  </div>
+</section>
+
+<section id="sources" style="gap:16px">
+  <span class="eyebrow">Sources</span>
+  <div class="sources"><ol>
+    <li>Apple App Store, Words With Friends (id 1196764367): rating, rating count and version via the iTunes Lookup API; 450 most recent US reviews via Apple's public customer-reviews RSS feed. Pulled Oct 4, 2026.</li>
+    <li>Sensor Tower, <a href="https://sensortower.com/blog/2025-q2-unified-top-5-word%20puzzle%20games-revenue-us-603697f4241bc16eb8570d37">Top 5 word puzzle games by revenue, US, Q2 2025</a> and <a href="https://sensortower.com/blog/2025-q4-unified-top-5-word-puzzle-games-revenue-us-603697f4241bc16eb8570d37">Q4 2025</a>.</li>
+    <li>GameAnalytics, 2025 Mobile Gaming Benchmarks, summarized by <a href="https://gamedevreports.substack.com/p/gameanalytics-mobile-gaming-benchmarks">Game Dev Reports</a>.</li>
+    <li>Prototype dictionary: ENABLE word list (public domain); opponent and hint words limited to common English words.</li>
+  </ol></div>
+</section>
+
+<footer>
+  <span>Words With Friends FTUE Redesign · October 2026 · Research, design and prototype by <a href="https://www.linkedin.com/in/zackariah-telsem-a8b245246/">Zackariah Telsem</a> (LinkedIn)</span>
+  <span>Words With Friends is a trademark of Zynga Inc. This project is not affiliated with or endorsed by Zynga. Screenshots are used for commentary; other players' photos are blurred. The opponent in the prototype is simulated.</span>
+</footer>
+</div>
+
+<script>
+(() => {
+'use strict';
+const $ = (s) => document.getElementById(s);
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------------- Device scaling ---------------- */
+const fit = $('deviceFit'), device = $('device'), screen = $('screen');
+const DW = 414, DH = 868;
+let scale = 1;
+function sizeDevice() {
+  const wrapW = document.querySelector('.wrap').clientWidth - 44;
+  const maxW = Math.min(DW, wrapW, window.innerWidth - 32);
+  const maxH = Math.max(560, window.innerHeight - 90);
+  scale = Math.min(1, maxW / DW, maxH / DH);
+  device.style.transform = `scale(${scale})`;
+  fit.style.width = DW * scale + 'px';
+  fit.style.height = DH * scale + 'px';
+}
+sizeDevice();
+function local(e) {
+  const r = screen.getBoundingClientRect();
+  const s = r.width / 390;
+  return { x: (e.clientX - r.left) / s, y: (e.clientY - r.top) / s };
+}
+function posIn(el) { // layout position relative to the screen, unscaled
+  let x = 0, y = 0, n = el;
+  while (n && n !== screen) { x += n.offsetLeft; y += n.offsetTop; n = n.offsetParent; }
+  return { x, y, w: el.offsetWidth, h: el.offsetHeight };
+}
+
+/* ---------------- Springs (damping ratio + response, Apple-style) ---------------- */
+class Spring {
+  constructor(v, eps = 0.05) { this.v = v; this.t = v; this.vel = 0; this.z = 1; this.resp = 0.35; this.on = false; this.eps = eps; }
+  to(t, o = {}) {
+    this.t = t; this.z = o.z ?? 1; this.resp = o.resp ?? 0.35;
+    if (o.vel !== undefined) this.vel = o.vel;
+    if (RM) { this.v = t; this.vel = 0; this.on = false; this.dirty = true; kick(); return; }
+    this.on = true; kick();
+  }
+  snap(v) { this.v = this.t = v; this.vel = 0; this.on = false; this.dirty = true; }
+  step(dt) {
+    if (!this.on) { const d = this.dirty; this.dirty = false; return d; }
+    const k = (2 * Math.PI / this.resp) ** 2, c = 4 * Math.PI * this.z / this.resp;
+    const n = Math.max(1, Math.ceil(dt * 240)), h = dt / n;
+    for (let i = 0; i < n; i++) { const a = -k * (this.v - this.t) - c * this.vel; this.vel += a * h; this.v += this.vel * h; }
+    if (Math.abs(this.v - this.t) < this.eps && Math.abs(this.vel) < this.eps * 40) { this.v = this.t; this.vel = 0; this.on = false; }
+    return true;
+  }
+}
+const anims = new Set(); let raf = 0, last = 0;
+function kick() { if (!raf) { last = performance.now(); raf = requestAnimationFrame(loop); } }
+function loop(now) {
+  const dt = Math.min(0.034, (now - last) / 1000); last = now;
+  let any = false;
+  for (const a of anims) if (a.step(dt)) any = true;
+  raf = any ? requestAnimationFrame(loop) : 0;
+}
+// Apple's momentum projection
+const project = (v, d = 0.99) => (v / 1000) * d / (1 - d);
+const rubber = (o, dim, c = 0.55) => (o * dim * c) / (dim + c * Math.abs(o));
+function velocityOf(hist) {
+  if (hist.length < 2) return { vx: 0, vy: 0 };
+  const a = hist[0], b = hist[hist.length - 1], dt = (b.t - a.t) / 1000;
+  if (dt <= 0) return { vx: 0, vy: 0 };
+  return { vx: (b.x - a.x) / dt, vy: (b.y - a.y) / dt };
+}
+function pushHist(h, p, t) { h.push({ x: p.x, y: p.y, t }); while (h.length > 2 && t - h[0].t > 90) h.shift(); }
+const haptic = () => { try { navigator.vibrate && navigator.vibrate(8); } catch (e) {} };
+
+/* ---------------- Toast ---------------- */
+let toastTimer;
+function toast(t) { const el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('on'), 2400); }
+
+/* ---------------- Checklist on the page ---------------- */
+function tick(k) { const c = document.querySelector(`.chip[data-k="${k}"]`); if (c && !c.classList.contains('done')) { c.classList.add('done'); c.querySelector('.ck').textContent = '✓'; } }
+
+/* ---------------- Game data ---------------- */
+const VAL = {a:1,b:4,c:4,d:2,e:1,f:4,g:3,h:3,i:1,j:10,k:5,l:2,m:4,n:2,o:1,p:4,q:10,r:1,s:1,t:1,u:2,v:5,w:4,x:8,y:3,z:10};
+const DIST = {a:9,b:2,c:2,d:5,e:13,f:2,g:3,h:4,i:8,j:1,k:1,l:4,m:2,n:5,o:8,p:2,q:1,r:6,s:5,t:7,u:4,v:2,w:2,x:1,y:2,z:1};
+const VOW = new Set('aeiou');
+const N = 15, C = 7;
+const TOP = [ // rows 0..7 of the Words With Friends board, mirrored below
+  {3:'TW',6:'TL',8:'TL',11:'TW'}, {2:'DL',5:'DW',9:'DW',12:'DL'}, {1:'DL',4:'DL',10:'DL',13:'DL'},
+  {0:'TW',3:'TL',7:'DW',11:'TL',14:'TW'}, {2:'DL',6:'DL',8:'DL',12:'DL'}, {1:'DW',5:'TL',9:'TL',13:'DW'},
+  {0:'TL',4:'DL',10:'DL',14:'TL'}, {3:'DW',11:'DW'}
+];
+const prem = (r, c) => (TOP[r <= 7 ? r : 14 - r][c] || null);
+const PNAME = { DL: 'double letter', TL: 'triple letter', DW: 'double word', TW: 'triple word' };
+
+let DICT = new Set(), COMMON = [];
+const FALLBACK = 'able about after again also area away back bake band bank bean bear beat best bird blue boat bold bone book born both cake call came card care cart case cast cats city coat cold come cook cool core cost date dear deal dine dirt door down drop earn east easy edit even face fact fair fall fame farm fast fear feel fine fire fish five food form free from game gate gave give glad goal gold gone good grow hair half hand hard have head hear heat help here hide high hold home hope idea into item join just keep kind king lake land last late lead lean left less life like line lion list live load long look lost love made main make many mark meal meet mile mind more most move name near need nest news nice note once only open over pace page pair park part past path read real rest ride ring rise road rock role room rose rule safe said sale salt same sand save seat seen send ship shoe shop side sign site slow snow soft sold song soon sort star stay step stop sure tale talk tall team tear tell tend test than that them then they this tide time tone took tree true turn unit used vote wait walk want warm wave week well went west what when wide wild will wind wine wise word work yard year your zone ate art arm age air and ant are bat bed bet big box boy bus but can car cat cow cup cut day dog dot ear eat egg end eye fan far fit fly fun gas get got hat hen her him his hot how ice ink its jam jar jet joy key kid lab lap law lay leg let lid lie lot low man map may men mix mom mud net new not now nut oak odd off oil old one our out owl own pan pen pet pie pig pin pot put ran rat red rib rod row rub run sad sat saw say sea see set she sit six sky son sun tab tag tan tap tea ten the tie tin toe ton top toy try two use van vet war was way web wet who why win won yes yet you zoo';
+COMMON = FALLBACK.split(' '); DICT = new Set(COMMON);
+fetch('common.txt').then(r => r.ok ? r.text() : Promise.reject()).then(t => { const w = t.split(/\s+/).filter(Boolean); if (w.length > 500) { COMMON = w; for (const x of w) DICT.add(x); } }).catch(() => {});
+fetch('words.txt').then(r => r.ok ? r.text() : Promise.reject()).then(t => { const s = new Set(t.split(/\s+/).filter(Boolean)); if (s.size > 1000) { for (const x of COMMON) s.add(x); DICT = s; } }).catch(() => {});
+
+/* ---------------- DOM refs ---------------- */
+const vWelcome = $('vWelcome'), vMatch = $('vMatch'), vGame = $('vGame');
+const boardEl = $('board'), rackEl = $('rack'), layer = $('layer'), msgEl = $('msg');
+const playBtn = $('aPlay');
+const cells = [];
+for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+  const d = document.createElement('div'); const p = prem(r, c);
+  d.className = 'cell' + (p ? ' ' + p : '') + (r === C && c === C ? ' star' : '');
+  if (p) d.textContent = p;
+  d.dataset.r = r; d.dataset.c = c;
+  d.setAttribute('aria-label', `Row ${r + 1}, column ${c + 1}${p ? ', ' + PNAME[p] : ''}${r === C && c === C ? ', center star' : ''}`);
+  boardEl.appendChild(d); cells.push(d);
+}
+const cellEl = (r, c) => cells[r * N + c];
+
+/* ---------------- State ---------------- */
+let S;
+function freshState() {
+  const bag = []; for (const [l, n] of Object.entries(DIST)) for (let i = 0; i < n; i++) bag.push(l);
+  return { bag, board: Array.from({ length: N }, () => Array(N).fill(null)), rack: [], pending: new Map(), samRack: [], you: 0, sam: 0,
+    turn: 'you', myWords: 0, samWords: 0, hints: 1, invalid: 0, tStart: performance.now(), tFirst: null, tipsOff: false, tip: 0,
+    sheetShown: false, swapArm: false, saved: 'Later', busy: false, selected: null, firstEval: true };
+}
+const T = 44;
+let geo = null;
+function measure() {
+  const c0 = posIn(cells[0]), c1 = posIn(cells[1]), cRow = posIn(cells[N]);
+  const b = posIn(boardEl), rk = posIn(rackEl);
+  geo = { x0: c0.x, y0: c0.y, step: c1.x - c0.x, stepY: cRow.y - c0.y, cell: c0.w, board: b, rack: rk };
+}
+const cellCenter = (r, c) => ({ x: geo.x0 + c * geo.step + geo.cell / 2, y: geo.y0 + r * geo.stepY + geo.cell / 2 });
+const cellScale = () => (geo.cell + 1) / T;
+function cellAt(x, y) {
+  const c = Math.floor((x - geo.x0) / geo.step), r = Math.floor((y - geo.y0) / geo.stepY);
+  return (r >= 0 && c >= 0 && r < N && c < N) ? { r, c } : null;
+}
+function slotCenter(i, n) {
+  const gap = 5, w = n * T + (n - 1) * gap, x = geo.rack.x + (geo.rack.w - w) / 2 + i * (T + gap) + T / 2;
+  return { x, y: geo.rack.y + geo.rack.h / 2 };
+}
+
+/* ---------------- Tiles ---------------- */
+let zTop = 10;
+class Tile {
+  constructor(letter, kind = 'you') {
+    this.letter = letter; this.kind = kind; this.state = 'rack'; this.r = -1; this.c = -1;
+    const el = this.el = document.createElement('button');
+    el.className = 'tile' + (kind === 'sam' ? ' sam locked' : '');
+    el.innerHTML = `${letter.toUpperCase()}<sub>${VAL[letter]}</sub>`;
+    el.setAttribute('aria-label', `${letter.toUpperCase()}, ${VAL[letter]} points`);
+    this.x = new Spring(0); this.y = new Spring(0); this.s = new Spring(1, 0.002); this.o = 1;
+    layer.appendChild(el); anims.add(this);
+    if (kind === 'you') bindTile(this);
+  }
+  step(dt) { const a = this.x.step(dt), b = this.y.step(dt), c = this.s.step(dt); if (a || b || c) this.render(); return this.x.on || this.y.on || this.s.on; }
+  render() { this.el.style.transform = `translate(${this.x.v - T / 2}px, ${this.y.v - 24}px) scale(${this.s.v})`; }
+  place(x, y, s, o = {}) { this.x.to(x, { ...o, vel: o.vx }); this.y.to(y, { ...o, vel: o.vy }); this.s.to(s, { resp: o.resp ?? 0.3 }); }
+  jump(x, y, s) { this.x.snap(x); this.y.snap(y); this.s.snap(s); this.render(); }
+  destroy() { anims.delete(this); this.el.remove(); }
+}
+let allTiles = [];
+
+function layoutRack(o = {}) {
+  const n = S.rack.length;
+  S.rack.forEach((t, i) => { if (t === drag?.tile) return; const p = slotCenter(i, n); t.place(p.x, p.y, t === S.selected ? 1.08 : 1, o); });
+}
+function layoutAll() {
+  measure();
+  S.rack.forEach((t, i) => { const p = slotCenter(i, S.rack.length); t.jump(p.x, p.y, 1); });
+  for (const t of allTiles) if (t.state !== 'rack') { const p = cellCenter(t.r, t.c); t.jump(p.x, p.y, cellScale()); }
+  updateEval();
+}
+
+/* ---------------- Drag: 1:1 tracking, grab offset, velocity handoff ---------------- */
+let drag = null, hotCell = null;
+function setHot(rc) {
+  if (hotCell) hotCell.classList.remove('hot');
+  hotCell = rc ? cellEl(rc.r, rc.c) : null;
+  if (hotCell) hotCell.classList.add('hot');
+}
+function bindTile(t) {
+  t.el.addEventListener('pointerdown', (e) => {
+    if (S.busy || S.turn !== 'you' || t.state === 'placed') return;
+    e.preventDefault();
+    try { t.el.setPointerCapture(e.pointerId); } catch (_) {}
+    const p = local(e);
+    // grab from the live (presentation) position, so a tile can be caught mid-flight
+    t.x.on = t.y.on = false;
+    const ri = S.rack.indexOf(t); t._origIndex = ri >= 0 ? ri : t._rackIndex;
+    drag = { tile: t, id: e.pointerId, gx: p.x - t.x.v, gy: p.y - t.y.v, start: p, moved: false, hist: [], from: t.state };
+    pushHist(drag.hist, p, e.timeStamp);
+    t.el.classList.add('lift'); t.el.style.zIndex = ++zTop;
+    t.s.to(1.12, { resp: 0.22 });
+  });
+  t.el.addEventListener('pointermove', (e) => {
+    if (!drag || drag.tile !== t || e.pointerId !== drag.id) return;
+    const p = local(e);
+    if (!drag.moved && Math.hypot(p.x - drag.start.x, p.y - drag.start.y) > 6) {
+      drag.moved = true;
+      if (t.state === 'pending') { S.pending.delete(t.r * N + t.c); t.state = 'drag'; updateEval(); }
+      else if (t.state === 'rack') { t.state = 'drag'; }
+      if (S.selected) { S.selected.el.classList.remove('sel'); S.selected = null; }
+    }
+    if (!drag.moved) return;
+    t.x.snap(p.x - drag.gx); t.y.snap(p.y - drag.gy); t.render(); kick();
+    pushHist(drag.hist, p, e.timeStamp);
+    const rc = cellAt(t.x.v, t.y.v);
+    setHot(rc && isFree(rc.r, rc.c) ? rc : null);
+  });
+  const end = (e) => {
+    if (!drag || drag.tile !== t || e.pointerId !== drag.id) return;
+    const d = drag; drag = null; setHot(null);
+    t.el.classList.remove('lift');
+    if (!d.moved) { t.s.to(t.state === 'pending' ? cellScale() : 1, { resp: 0.25 }); onTileTap(t); return; }
+    const { vx, vy } = velocityOf(d.hist);
+    const speed = Math.hypot(vx, vy), flick = speed > 900;
+    let px = t.x.v, py = t.y.v;
+    if (flick) { px += project(vx); py += project(vy); }
+    const target = dropTarget(px, py, t);
+    const springy = flick ? { z: 0.8, resp: 0.32 } : { z: 1, resp: 0.3 };
+    if (target.cell) {
+      putOnBoard(t, target.cell.r, target.cell.c, { ...springy, vx, vy });
+      tick('drag'); haptic();
+    } else {
+      toRack(t, target.index, { ...springy, vx, vy });
+      if (flick && d.from === 'pending') tick('flick');
+    }
+  };
+  t.el.addEventListener('pointerup', end);
+  t.el.addEventListener('pointercancel', end);
+}
+const isFree = (r, c) => !S.board[r][c] && !S.pending.has(r * N + c);
+function dropTarget(x, y, t) {
+  const b = geo.board;
+  const onBoard = x > b.x - 6 && x < b.x + b.w + 6 && y > b.y - 6 && y < b.y + b.h + 6;
+  if (onBoard && y < geo.rack.y - 10) {
+    const rc = cellAt(Math.min(Math.max(x, geo.x0), geo.x0 + N * geo.step - 1), Math.min(Math.max(y, geo.y0), geo.y0 + N * geo.stepY - 1));
+    if (rc) {
+      let best = null, bd = 1e9;
+      for (let dr = -2; dr <= 2; dr++) for (let dc = -2; dc <= 2; dc++) {
+        const r = rc.r + dr, c = rc.c + dc;
+        if (r < 0 || c < 0 || r >= N || c >= N || !isFree(r, c)) continue;
+        const p = cellCenter(r, c), dd = (p.x - x) ** 2 + (p.y - y) ** 2;
+        if (dd < bd) { bd = dd; best = { r, c }; }
+      }
+      if (best) return { cell: best };
+    }
+  }
+  // back to the rack, at the slot nearest the drop point
+  const n = S.rack.filter(x => x !== t).length + 1;
+  let idx = n - 1;
+  if (y > geo.rack.y - 60) { let bd = 1e9; for (let i = 0; i < n; i++) { const d = Math.abs(slotCenter(i, n).x - x); if (d < bd) { bd = d; idx = i; } } }
+  else if (t._origIndex !== undefined) idx = Math.min(t._origIndex, n - 1);
+  return { index: idx };
+}
+function putOnBoard(t, r, c, o = {}) {
+  const i = S.rack.indexOf(t); if (i >= 0) { t._rackIndex = i; S.rack.splice(i, 1); }
+  t.state = 'pending'; t.r = r; t.c = c; t.el.classList.add('pending');
+  S.pending.set(r * N + c, t);
+  if (S.tip === 4) { S.tip = 5; hideCoach(); }
+  const p = cellCenter(r, c); t.place(p.x, p.y, cellScale(), o);
+  layoutRack(); updateEval();
+}
+function toRack(t, idx, o = {}) {
+  if (t.state === 'pending') S.pending.delete(t.r * N + t.c);
+  const i = S.rack.indexOf(t); if (i >= 0) S.rack.splice(i, 1);
+  t.state = 'rack'; t.r = t.c = -1; t.el.classList.remove('pending');
+  S.rack.splice(Math.max(0, Math.min(idx ?? S.rack.length, S.rack.length)), 0, t);
+  t.el.style.zIndex = ++zTop;
+  const n = S.rack.length; const p = slotCenter(S.rack.indexOf(t), n);
+  t.place(p.x, p.y, 1, o);
+  layoutRack(); updateEval();
+}
+// Tap-to-place: tap a rack tile, then a square. Tap a placed tile to send it back.
+function onTileTap(t) {
+  if (t.state === 'pending') { toRack(t, t._rackIndex ?? S.rack.length); return; }
+  if (S.selected === t) { t.el.classList.remove('sel'); S.selected = null; layoutRack(); return; }
+  if (S.selected) S.selected.el.classList.remove('sel');
+  S.selected = t; t.el.classList.add('sel'); layoutRack();
+  if (S.tip === 1) showMsg('Now tap a square on the board.', '');
+}
+boardEl.addEventListener('click', (e) => {
+  const c = e.target.closest('.cell'); if (!c || !S.selected || S.turn !== 'you') return;
+  const r = +c.dataset.r, cc = +c.dataset.c; if (!isFree(r, cc)) return;
+  const t = S.selected; t.el.classList.remove('sel'); S.selected = null;
+  putOnBoard(t, r, cc, { z: 1, resp: 0.32 }); tick('drag');
+});
+
+/* ---------------- Rules: placement, words, scoring ---------------- */
+function evalPlacement(pl) {
+  if (!pl.length) return { empty: true };
+  const pm = new Map(pl.map(p => [p.r * N + p.c, p.l]));
+  const L = (r, c) => (r < 0 || c < 0 || r >= N || c >= N) ? null : (S.board[r][c] ? S.board[r][c].l : (pm.get(r * N + c) || null));
+  const rows = new Set(pl.map(p => p.r)), cols = new Set(pl.map(p => p.c));
+  let dir;
+  if (pl.length === 1) { const { r, c } = pl[0]; dir = (L(r, c - 1) || L(r, c + 1)) ? 'H' : ((L(r - 1, c) || L(r + 1, c)) ? 'V' : 'H'); }
+  else if (rows.size === 1) dir = 'H'; else if (cols.size === 1) dir = 'V';
+  else return { error: 'Place your letters in one straight line.' };
+  const at = (i, f) => dir === 'H' ? [f, i] : [i, f];
+  const fixed = dir === 'H' ? pl[0].r : pl[0].c;
+  const idx = pl.map(p => dir === 'H' ? p.c : p.r);
+  let lo = Math.min(...idx), hi = Math.max(...idx);
+  for (let i = lo; i <= hi; i++) if (!L(...at(i, fixed))) return { error: 'Leave no gaps between letters.' };
+  while (lo > 0 && L(...at(lo - 1, fixed))) lo--;
+  while (hi < N - 1 && L(...at(hi + 1, fixed))) hi++;
+  const read = (cellsRC) => {
+    let word = '', sum = 0, mult = 1, touches = false;
+    for (const [r, c] of cellsRC) {
+      const l = L(r, c), isNew = pm.has(r * N + c), p = isNew ? prem(r, c) : null;
+      word += l; let v = VAL[l];
+      if (p === 'DL') v *= 2; if (p === 'TL') v *= 3; if (p === 'DW') mult *= 2; if (p === 'TW') mult *= 3;
+      if (!isNew) touches = true; sum += v;
+    }
+    return { word, score: sum * mult, touches, cells: cellsRC };
+  };
+  const words = [];
+  const mainCells = []; for (let i = lo; i <= hi; i++) mainCells.push(at(i, fixed));
+  if (mainCells.length >= 2) words.push(read(mainCells));
+  for (const p of pl) {
+    const cr = [];
+    if (dir === 'H') { let a = p.r, b = p.r; while (a > 0 && L(a - 1, p.c)) a--; while (b < N - 1 && L(b + 1, p.c)) b++; if (b > a) for (let r = a; r <= b; r++) cr.push([r, p.c]); }
+    else { let a = p.c, b = p.c; while (a > 0 && L(p.r, a - 1)) a--; while (b < N - 1 && L(p.r, b + 1)) b++; if (b > a) for (let c = a; c <= b; c++) cr.push([p.r, c]); }
+    if (cr.length >= 2) words.push(read(cr));
+  }
+  if (!words.length) return { error: 'Words need at least two letters.' };
+  const empty = boardEmpty();
+  if (empty && !pm.has(C * N + C)) return { error: 'Your first word has to cover the center star.' };
+  if (!empty && !words.some(w => w.touches)) return { error: 'Connect your word to letters already on the board.' };
+  const bad = words.find(w => !DICT.has(w.word));
+  if (bad) return { error: `${bad.word.toUpperCase()} isn't in the word list.`, invalid: true };
+  let score = words.reduce((s, w) => s + w.score, 0);
+  if (pl.length === 7) score += 35;
+  return { ok: true, words, score, main: words[0] };
+}
+const boardEmpty = () => S.board.every(row => row.every(x => !x));
+const pendingList = () => [...S.pending.values()].map(t => ({ r: t.r, c: t.c, l: t.letter }));
+
+/* ---------------- Move generator (opponent + hint) ---------------- */
+function genMoves(rack) {
+  const have = {}; for (const l of rack) have[l] = (have[l] || 0) + 1;
+  const empty = boardEmpty(), out = [], seen = new Set();
+  const anchors = [];
+  if (!empty) for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (S.board[r][c]) anchors.push([r, c, S.board[r][c].l]);
+  for (const w of COMMON) {
+    if (w.length < 2 || w.length > 8) continue;
+    const need = {}; let miss = 0;
+    for (const ch of w) need[ch] = (need[ch] || 0) + 1;
+    for (const ch in need) { const d = need[ch] - (have[ch] || 0); if (d > 0) miss += d; }
+    if (empty) {
+      if (miss) continue;
+      for (let s = C - w.length + 1; s <= C; s++) { if (s < 0 || s + w.length > N) continue; tryMove(w, C, s, 'H'); }
+      continue;
+    }
+    if (miss > 2) continue;
+    for (const [r, c, l] of anchors) {
+      for (let i = 0; i < w.length; i++) if (w[i] === l) { tryMove(w, r, c - i, 'H'); tryMove(w, r - i, c, 'V'); }
+    }
+  }
+  function tryMove(w, r, c, d) {
+    const key = w + r + ',' + c + d; if (seen.has(key)) return; seen.add(key);
+    const er = d === 'H' ? r : r + w.length - 1, ec = d === 'H' ? c + w.length - 1 : c;
+    if (r < 0 || c < 0 || er >= N || ec >= N) return;
+    const bl = d === 'H' ? [r, c - 1] : [r - 1, c], al = d === 'H' ? [r, ec + 1] : [er + 1, c];
+    const occ = (rr, cc) => rr >= 0 && cc >= 0 && rr < N && cc < N && S.board[rr][cc];
+    if (occ(...bl) || occ(...al)) return;
+    const left = { ...have }, pl = [];
+    for (let i = 0; i < w.length; i++) {
+      const rr = d === 'H' ? r : r + i, cc = d === 'H' ? c + i : c, b = S.board[rr][cc];
+      if (b) { if (b.l !== w[i]) return; }
+      else { if (!left[w[i]]) return; left[w[i]]--; pl.push({ r: rr, c: cc, l: w[i] }); }
+    }
+    if (!pl.length || pl.length === w.length && !empty) { if (!pl.length) return; }
+    const ev = evalPlacement(pl);
+    if (ev.ok) out.push({ pl, score: ev.score, word: ev.main.word });
+  }
+  return out;
+}
+
+/* ---------------- Racks ---------------- */
+function drawFrom(n) { const out = []; for (let i = 0; i < n && S.bag.length; i++) out.push(S.bag.splice(Math.floor(Math.random() * S.bag.length), 1)[0]); return out; }
+function balanced(letters, total) { const v = letters.filter(l => VOW.has(l)).length; return v >= 2 && v <= Math.min(4, total - 2); }
+function openingRack() {
+  // AC3: 2–4 vowels and at least one common 4+ letter word
+  for (let k = 0; k < 80; k++) {
+    const r = drawFrom(7);
+    if (balanced(r, 7) && canMake4(r)) return r;
+    S.bag.push(...r);
+  }
+  return drawFrom(7);
+}
+function canMake4(r) {
+  const have = {}; for (const l of r) have[l] = (have[l] || 0) + 1;
+  return COMMON.some(w => { if (w.length < 4) return false; const h = { ...have }; for (const ch of w) { if (!h[ch]) return false; h[ch]--; } return true; });
+}
+function refill(kept, n) {
+  // no all-vowel / all-consonant racks in the first turns
+  for (let k = 0; k < 30; k++) { const d = drawFrom(n); const all = kept.concat(d); if (S.myWords > 3 || balanced(all, all.length) || all.length < 4) return d; S.bag.push(...d); }
+  return drawFrom(n);
+}
+function dealTiles(letters, fromBelow = true) {
+  const n0 = S.rack.length;
+  letters.forEach((l, i) => {
+    const t = new Tile(l, 'you'); allTiles.push(t); S.rack.push(t);
+    const p = slotCenter(n0 + i, n0 + letters.length);
+    t.jump(p.x, fromBelow ? 900 : p.y, 1);
+  });
+  S.rack.forEach((t, i) => { const p = slotCenter(i, S.rack.length); setTimeout(() => t.place(p.x, p.y, 1, { z: 1, resp: 0.42 }), RM ? 0 : i * 45); });
+  updateBag();
+}
+const updateBag = () => { $('bag').textContent = `${S.bag.length} letters left`; };
+
+/* ---------------- Evaluation UI ---------------- */
+let ptsEl = null, ptsX, ptsY;
+function showMsg(t, kind) { msgEl.textContent = t; msgEl.className = 'msg' + (kind ? ' ' + kind : ''); }
+function updateEval() {
+  if (!S || S.turn !== 'you') return;
+  const pl = pendingList();
+  $('aRecall').disabled = !pl.length;
+  if (!pl.length) { playBtn.classList.add('off'); hidePts(); if (S.tip !== 1) showMsg('', ''); return; }
+  const ev = evalPlacement(pl);
+  S.ev = ev;
+  if (ev.ok) {
+    playBtn.classList.remove('off');
+    const w = ev.words.map(x => x.word.toUpperCase()).join(' + ');
+    showMsg(`${w} · ${ev.score} points${pl.length === 7 ? ' (includes 35 bonus)' : ''}`, 'ok');
+    // badge on the last cell of the main word
+    const lastCell = ev.main.cells[ev.main.cells.length - 1], p = cellCenter(lastCell[0], lastCell[1]);
+    showPts(ev.score, p.x + geo.cell * 0.55, p.y - geo.cell * 0.75);
+    if (S.tip === 2 || S.tip === 1) setTip(3);
+  } else {
+    playBtn.classList.add('off'); hidePts();
+    showMsg(ev.error, ev.invalid ? 'err' : '');
+    if (S.tip === 1 && pl.length >= 1) setTip(2);
+  }
+}
+function showPts(score, x, y) {
+  if (!ptsEl) {
+    ptsEl = document.createElement('div'); ptsEl.className = 'pts'; layer.appendChild(ptsEl);
+    ptsX = new Spring(x); ptsY = new Spring(y); ptsEl._s = new Spring(0.4, 0.002);
+    anims.add({ step(dt) { const a = ptsX.step(dt), b = ptsY.step(dt), c = ptsEl && ptsEl._s.step(dt); if (ptsEl && (a || b || c)) ptsEl.style.transform = `translate(${ptsX.v - 13}px, ${ptsY.v - 11}px) scale(${ptsEl._s.v})`; return ptsX.on || ptsY.on || (ptsEl && ptsEl._s.on); } });
+  }
+  ptsEl.textContent = score; ptsEl.style.opacity = 1;
+  ptsX.to(x, { resp: 0.3 }); ptsY.to(y, { resp: 0.3 }); ptsEl._s.to(1, { z: 0.7, resp: 0.35 });
+}
+function hidePts() { if (ptsEl) { ptsEl.style.opacity = 0; ptsEl._s.snap(0.4); } }
+function shakeMsg() {
+  const sp = new Spring(0, 0.1); sp.vel = 900; sp.to(0, { z: 0.25, resp: 0.25, vel: 900 });
+  const a = { step(dt) { const r = sp.step(dt); msgEl.style.transform = `translateX(${sp.v}px)`; if (!sp.on) anims.delete(a); return sp.on; } };
+  anims.add(a); kick();
+}
+
+/* ---------------- Coach tips ---------------- */
+const coach = document.createElement('div'); coach.className = 'coach'; coach.hidden = true;
+coach.innerHTML = '<div class="step"></div><div class="body"></div><div class="row"><button data-c="hide">Hide tips</button><button data-c="ok">Got it</button></div><div class="arrow"></div>';
+screen.appendChild(coach);
+const cS = new Spring(0, 0.002);
+anims.add({ step(dt) { const a = cS.step(dt); if (a) { coach.style.opacity = cS.v; coach.style.transform = `scale(${0.92 + 0.08 * cS.v})`; coach.style.filter = `blur(${(1 - cS.v) * 6}px)`; } return cS.on; } });
+const TIPS = {
+  1: { body: 'Drag letters from your rack onto the board. Your first word has to cover the <b>★</b> in the center.', anchor: 'rack' },
+  2: { body: 'Colored squares boost your score: <span class="k" style="background:#3d8ad6">DL</span> <span class="k" style="background:#5aa83f">TL</span> multiply a letter, <span class="k" style="background:#d9544f">DW</span> <span class="k" style="background:#ea8a2b">TW</span> the whole word.', anchor: 'board' },
+  3: { body: 'That\'s a real word. Tap <b>PLAY</b> to send it to Sam.', anchor: 'play' },
+  4: { body: 'Your turn again. New words have to connect to letters already on the board.', anchor: 'rack' }
+};
+function setTip(n) {
+  if (!S) return;
+  S.tip = n;
+  cellEl(C, C).classList.toggle('pulse', n === 1 && boardEmpty());
+  if (S.tipsOff || !TIPS[n]) { hideCoach(); return; }
+  const t = TIPS[n];
+  coach.querySelector('.step').textContent = n <= 3 ? `Tip ${n} of 3` : 'Tip';
+  coach.querySelector('.body').innerHTML = t.body;
+  coach.hidden = false; coach.classList.remove('below');
+  const arrow = coach.querySelector('.arrow');
+  let top, ax = 195;
+  if (t.anchor === 'rack') { top = geo.rack.y - 14; ax = 195; }
+  else if (t.anchor === 'play') { top = posIn(playBtn).y - 12; ax = posIn(playBtn).x + playBtn.offsetWidth / 2; }
+  else { top = geo.board.y + 34; coach.classList.add('below'); }
+  coach.style.top = '0px';
+  const h = coach.offsetHeight;
+  coach.style.top = (coach.classList.contains('below') ? top : top - h) + 'px';
+  arrow.style.left = (ax - 16) + 'px'; arrow.style.marginLeft = '-7px';
+  coach.style.transformOrigin = `${ax - 16}px ${coach.classList.contains('below') ? 0 : h}px`;
+  cS.snap(RM ? 1 : 0); cS.to(1, { resp: 0.35 }); kick();
+}
+function hideCoach() { cS.to(0, { resp: 0.25 }); setTimeout(() => { if (cS.v < 0.05) coach.hidden = true; }, 300); }
+coach.addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.c === 'hide') { S.tipsOff = true; cellEl(C, C).classList.remove('pulse'); toast('Tips hidden. You can turn them back on in Settings.'); }
+  hideCoach();
+});
+
+/* ---------------- Actions ---------------- */
+playBtn.addEventListener('click', () => {
+  if (S.turn !== 'you' || S.busy) return;
+  const pl = pendingList();
+  if (!pl.length) { showMsg('Drag some letters onto the board first.', ''); shakeMsg(); return; }
+  const ev = evalPlacement(pl);
+  if (!ev.ok) {
+    shakeMsg(); showMsg(ev.error, ev.invalid ? 'err' : '');
+    if (ev.invalid) { S.invalid++; tick('invalid'); }
+    if (S.invalid >= 2 && S.hints > 0) { $('aHint').classList.add('glow'); showMsg(ev.error + ' Stuck? Your first hint is free.', 'err'); }
+    return;
+  }
+  commitMove(ev);
+});
+function commitMove(ev) {
+  hideCoach(); hidePts(); setHot(null);
+  if (S.selected) { S.selected.el.classList.remove('sel'); S.selected = null; }
+  for (const t of S.pending.values()) {
+    t.state = 'placed'; t.el.classList.remove('pending'); t.el.classList.add('locked');
+    S.board[t.r][t.c] = { l: t.letter, who: 'you' };
+    t.s.to(cellScale() * 1.12, { resp: 0.15 }); setTimeout(() => t.s.to(cellScale(), { z: 0.6, resp: 0.35 }), 120);
+  }
+  S.pending.clear(); clearFresh(); haptic();
+  S.myWords++; tick('play');
+  if (!S.tFirst) S.tFirst = performance.now();
+  countTo('scYou', S.you, S.you + ev.score); S.you += ev.score;
+  const word = ev.main.word.toUpperCase();
+  $('lastMove').textContent = `You played ${word} for ${ev.score} points`;
+  showMsg(S.myWords === 1 ? `First word down in ${fmt(S.tFirst - S.tStart)}. Nice.` : 'Nice move.', 'ok');
+  playBtn.classList.add('off'); $('aRecall').disabled = true; $('aHint').classList.remove('glow');
+  const kept = S.rack.map(t => t.letter);
+  dealTiles(refill(kept, 7 - S.rack.length));
+  samTurn();
+}
+const fmt = (ms) => { const s = Math.max(1, Math.round(ms / 1000)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+function countTo(id, from, to) {
+  const el = $(id), t0 = performance.now(), d = RM ? 1 : 600;
+  const f = (now) => { const k = Math.min(1, (now - t0) / d), e = 1 - Math.pow(1 - k, 3); el.textContent = Math.round(from + (to - from) * e); if (k < 1) requestAnimationFrame(f); };
+  requestAnimationFrame(f);
+}
+function clearFresh() { for (const t of allTiles) t.el.classList.remove('fresh'); }
+
+function setTurn(who) {
+  S.turn = who;
+  const tn = $('turn');
+  $('pYou').classList.toggle('active', who === 'you'); $('pSam').classList.toggle('active', who === 'sam');
+  if (who === 'you') { tn.className = 'turn'; tn.innerHTML = 'Your turn'; }
+  else { tn.className = 'turn wait'; tn.innerHTML = 'Sam is playing<span class="dots"><i></i><i></i><i></i></span>'; }
+  for (const b of ['aSwap', 'aShuffle', 'aHint']) $(b).disabled = who !== 'you' || (b === 'aHint' && S.hints <= 0);
+}
+function samTurn() {
+  setTurn('sam');
+  const wait = RM ? 900 : 1700 + Math.random() * 900;
+  const gen = S.gen;
+  setTimeout(() => {
+    if (gen !== S.gen) return;
+    let moves = genMoves(S.samRack).filter(m => m.word.length <= 6);
+    if (!moves.length) {
+      S.bag.push(...S.samRack); S.samRack = drawFrom(7);
+      $('lastMove').textContent = 'Sam swapped letters';
+      return backToYou();
+    }
+    moves.sort((a, b) => a.score - b.score);
+    const m = moves[Math.floor(moves.length * 0.45)];  // a friendly, beginner-level opponent
+    const av = posIn($('samAv'));
+    m.pl.forEach((p, i) => {
+      const t = new Tile(p.l, 'sam'); allTiles.push(t);
+      t.state = 'placed'; t.r = p.r; t.c = p.c; t.el.classList.add('fresh');
+      S.board[p.r][p.c] = { l: p.l, who: 'sam' };
+      t.jump(av.x + av.w / 2, av.y + av.h / 2, 0.35);   // enters from Sam's avatar
+      const c = cellCenter(p.r, p.c);
+      setTimeout(() => t.place(c.x, c.y, cellScale(), { z: 0.85, resp: 0.5 }), RM ? 0 : 120 + i * 90);
+      const k = S.samRack.indexOf(p.l); if (k >= 0) S.samRack.splice(k, 1);
+    });
+    S.samRack.push(...drawFrom(7 - S.samRack.length));
+    S.samWords++;
+    setTimeout(() => {
+      if (gen !== S.gen) return;
+      countTo('scSam', S.sam, S.sam + m.score); S.sam += m.score;
+      $('lastMove').textContent = `Sam played ${m.word.toUpperCase()} for ${m.score} points`;
+      updateBag(); backToYou();
+    }, RM ? 0 : 500 + m.pl.length * 90);
+  }, wait);
+}
+function backToYou() {
+  setTurn('you'); showMsg('', '');
+  if (S.myWords === 1 && !S.tipsOff) setTip(4); else if (S.tip === 4) hideCoach();
+  if (S.myWords >= 2 && !S.sheetShown) { S.sheetShown = true; const g = S.gen; setTimeout(() => { if (g === S.gen) openSheet(); }, 700); }
+}
+
+$('aShuffle').addEventListener('click', () => {
+  for (let i = S.rack.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [S.rack[i], S.rack[j]] = [S.rack[j], S.rack[i]]; }
+  layoutRack({ z: 0.8, resp: 0.38 });
+});
+$('aRecall').addEventListener('click', () => { for (const t of [...S.pending.values()]) toRack(t, S.rack.length, { resp: 0.35 }); });
+$('aSwap').addEventListener('click', () => {
+  if (S.turn !== 'you') return;
+  if (!S.swapArm) { S.swapArm = true; showMsg('Tap Swap again to trade all your letters. It uses your turn.', ''); setTimeout(() => { S.swapArm = false; }, 3500); return; }
+  S.swapArm = false;
+  for (const t of [...S.pending.values()]) toRack(t);
+  const old = S.rack.map(t => t.letter);
+  S.rack.forEach(t => { t.place(t.x.v, 900, 1, { resp: 0.35 }); setTimeout(() => t.destroy(), 450); });
+  allTiles = allTiles.filter(t => !S.rack.includes(t)); S.rack = [];
+  const fresh = drawFrom(7); S.bag.push(...old);
+  setTimeout(() => dealTiles(fresh), 250);
+  $('lastMove').textContent = 'You swapped letters';
+  hideCoach(); samTurn();
+});
+$('aHint').addEventListener('click', () => {
+  if (S.turn !== 'you' || S.hints <= 0) return;
+  for (const t of [...S.pending.values()]) toRack(t);
+  const moves = genMoves(S.rack.map(t => t.letter));
+  if (!moves.length) { toast('No word fits right now. Try Swap.'); return; }
+  moves.sort((a, b) => b.score - a.score);
+  const m = moves[0];
+  S.hints--; $('hintBadge').textContent = S.hints; $('aHint').classList.remove('glow'); $('aHint').disabled = true;
+  tick('hint');
+  const used = new Set();
+  m.pl.forEach((p, i) => {
+    const t = S.rack.find(x => x.letter === p.l && !used.has(x)); used.add(t);
+    setTimeout(() => putOnBoard(t, p.r, p.c, { z: 0.85, resp: 0.4 }), RM ? 0 : i * 110);
+  });
+  toast(`Hint: ${m.word.toUpperCase()} for ${m.score}. Hints are boosts; this one's free.`);
+});
+
+/* ---------------- Bottom sheet: drag, rubber-band, momentum projection ---------------- */
+const sheet = $('sheet'), scrim = $('scrim');
+const sy = new Spring(900, 0.3);
+let sheetH = 420, sheetDrag = null, sheetOpen = false;
+anims.add({ step(dt) { const a = sy.step(dt); if (a) { sheet.style.transform = `translateY(${sy.v}px)`; scrim.style.opacity = 0.32 * Math.max(0, 1 - sy.v / sheetH); } return sy.on; } });
+function openSheet() {
+  sheet.hidden = false; sheetH = sheet.offsetHeight; sy.snap(sheetH); sheet.style.transform = `translateY(${sheetH}px)`;
+  scrim.classList.add('on'); sheetOpen = true; sy.to(0, { z: 1, resp: 0.4 }); hideCoach();
+}
+function closeSheet(vel, saved) {
+  sheetOpen = false; scrim.classList.remove('on');
+  sy.to(sheetH + 20, { z: 1, resp: 0.35, vel });
+  setTimeout(() => { sheet.hidden = true; showSummary(saved); }, RM ? 50 : 380);
+}
+sheet.addEventListener('pointerdown', (e) => {
+  if (e.target.closest('button')) return;
+  try { sheet.setPointerCapture(e.pointerId); } catch (_) {}
+  const p = local(e); sy.on = false;
+  sheetDrag = { start: p.y, base: sy.v, hist: [] }; pushHist(sheetDrag.hist, p, e.timeStamp);
+});
+sheet.addEventListener('pointermove', (e) => {
+  if (!sheetDrag) return; const p = local(e);
+  let y = sheetDrag.base + (p.y - sheetDrag.start);
+  if (y < 0) y = rubber(y, sheetH);              // resist past the top edge
+  sy.snap(y); sheet.style.transform = `translateY(${y}px)`; scrim.style.opacity = 0.32 * Math.max(0, 1 - y / sheetH);
+  pushHist(sheetDrag.hist, p, e.timeStamp);
+});
+const sheetEnd = () => {
+  if (!sheetDrag) return; const { vy } = velocityOf(sheetDrag.hist); sheetDrag = null;
+  const landing = sy.v + project(vy, 0.998);       // where the flick is going, not where it let go
+  if (landing > sheetH * 0.5) { tick('sheet'); closeSheet(vy, 'Later'); }
+  else sy.to(0, { z: Math.abs(vy) > 300 ? 0.8 : 1, resp: 0.35, vel: vy });
+};
+sheet.addEventListener('pointerup', sheetEnd); sheet.addEventListener('pointercancel', sheetEnd);
+scrim.addEventListener('click', () => { if (sheetOpen) closeSheet(0, 'Later'); });
+sheet.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-save]'); if (!b) return;
+  const how = b.dataset.save;
+  closeSheet(0, how === 'later' ? 'Later' : (how === 'Apple' ? 'Apple' : 'Email'));
+});
+$('notif').addEventListener('click', (e) => { const s = e.currentTarget; s.setAttribute('aria-checked', s.getAttribute('aria-checked') === 'true' ? 'false' : 'true'); });
+
+/* ---------------- Summary ---------------- */
+const sumS = new Spring(0, 0.002);
+anims.add({ step(dt) { const a = sumS.step(dt); if (a) { const c = $('scard'); c.style.opacity = sumS.v; c.style.transform = `translateY(${(1 - sumS.v) * 24}px) scale(${0.96 + 0.04 * sumS.v})`; } return sumS.on; } });
+function showSummary(saved) {
+  $('sTime').textContent = S.tFirst ? fmt(S.tFirst - S.tStart) : '—';
+  $('sWords').textContent = S.myWords; $('sScore').textContent = `${S.you}–${S.sam}`; $('sSaved').textContent = saved;
+  $('summary').hidden = false; sumS.snap(0); sumS.to(1, { resp: 0.4 });
+}
+$('btnKeep').addEventListener('click', () => { $('summary').hidden = true; });
+$('btnAgain').addEventListener('click', restart);
+$('btnRestart').addEventListener('click', restart);
+
+/* ---------------- Screens ---------------- */
+function show(v) { for (const x of [vWelcome, vMatch, vGame]) x.hidden = x !== v; }
+const viewS = new Spring(1, 0.002);
+function enter(v) {
+  show(v); viewS.snap(RM ? 1 : 0); viewS.to(1, { resp: 0.4 });
+  const a = { step(dt) { const r = viewS.step(dt); v.style.opacity = viewS.v; v.style.transform = `translateX(${(1 - viewS.v) * 40}px)`; if (!viewS.on) { v.style.transform = ''; anims.delete(a); } return viewS.on; } };
+  anims.add(a); kick();
+}
+
+// Welcome tiles: draggable, spring home with the throw's velocity
+const WT = [['p', 4], ['l', 2], ['a', 1], ['y', 3]];
+const wtiles = $('wtiles');
+WT.forEach(([l, v], i) => {
+  const el = document.createElement('div'); el.className = 'wtile'; el.innerHTML = `${l.toUpperCase()}<sub>${v}</sub>`; wtiles.appendChild(el);
+  const x = new Spring(0, 0.1), y = new Spring(-160, 0.1);
+  const o = { step(dt) { const a = x.step(dt), b = y.step(dt); if (a || b) el.style.transform = `translate(${x.v}px, ${y.v}px) rotate(${x.v * 0.04}deg)`; return x.on || y.on; } };
+  anims.add(o); el._x = x; el._y = y; el._i = i;
+  let d = null;
+  el.addEventListener('pointerdown', (e) => { try { el.setPointerCapture(e.pointerId); } catch (_) {} const p = local(e); x.on = y.on = false; d = { sx: p.x - x.v, sy: p.y - y.v, hist: [] }; pushHist(d.hist, p, e.timeStamp); el.style.zIndex = 5; });
+  el.addEventListener('pointermove', (e) => { if (!d) return; const p = local(e); const nx = p.x - d.sx, ny = p.y - d.sy; x.snap(rubber(nx, 300, 0.9)); y.snap(rubber(ny, 300, 0.9)); el.style.transform = `translate(${x.v}px, ${y.v}px) rotate(${x.v * 0.04}deg)`; pushHist(d.hist, p, e.timeStamp); });
+  const up = () => { if (!d) return; const { vx, vy } = velocityOf(d.hist); d = null; el.style.zIndex = ''; x.to(0, { z: 0.6, resp: 0.5, vel: vx }); y.to(0, { z: 0.6, resp: 0.5, vel: vy }); };
+  el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
+});
+function dropWelcomeTiles() {
+  [...wtiles.children].forEach((el) => { el._x.snap(0); el._y.snap(RM ? 0 : -160); el.style.transform = `translate(0px, ${el._y.v}px)`; setTimeout(() => el._y.to(0, { z: 1, resp: 0.45 }), RM ? 0 : 120 + el._i * 70); });
+  kick();
+}
+
+$('btnHave').addEventListener('click', () => toast('Sign-in opens here for returning players. It\'s not part of this prototype.'));
+$('btnInvite').addEventListener('click', () => toast('Opens a share sheet with an invite link.'));
+$('btnStart').addEventListener('click', () => {
+  enter(vMatch);
+  const gen = S.gen;
+  $('mTitle').textContent = 'Finding a quick player…'; $('mCard').style.opacity = 0;
+  const cs = new Spring(0, 0.002);
+  const a = { step(dt) { const r = cs.step(dt); $('mCard').style.opacity = cs.v; $('mCard').style.transform = `translateY(${(1 - cs.v) * 16}px)`; if (!cs.on) anims.delete(a); return cs.on; } };
+  setTimeout(() => { if (gen !== S.gen) return; $('mTitle').textContent = 'Matched with Sam'; anims.add(a); cs.to(1, { resp: 0.4 }); }, RM ? 200 : 900);
+  setTimeout(() => { if (gen !== S.gen) return; startGame(); }, RM ? 900 : 2100);
+});
+
+function startGame() {
+  enter(vGame);
+  requestAnimationFrame(() => {
+    measure();
+    S.samRack = drawFrom(7);
+    dealTiles(openingRack());
+    setTurn('you');
+    setTimeout(() => setTip(1), RM ? 0 : 450);
+  });
+}
+
+let genCounter = 0;
+function restart() {
+  if (S) S.gen = -1;
+  for (const t of allTiles) t.destroy(); allTiles = [];
+  if (ptsEl) { ptsEl.remove(); ptsEl = null; }
+  for (const c of cells) c.classList.remove('hot', 'pulse');
+  coach.hidden = true; sheet.hidden = true; scrim.classList.remove('on'); scrim.style.opacity = 0; $('summary').hidden = true;
+  S = freshState(); S.gen = ++genCounter;
+  $('scYou').textContent = '0'; $('scSam').textContent = '0'; $('hintBadge').textContent = '1';
+  $('aHint').classList.remove('glow'); $('aHint').disabled = false;
+  $('lastMove').textContent = 'You go first. No ads in your first match.'; showMsg('', ''); playBtn.classList.add('off');
+  enter(vWelcome); dropWelcomeTiles();
+}
+
+window.addEventListener('resize', () => { sizeDevice(); if (S && !vGame.hidden) layoutAll(); });
+restart();
+})();
+</script>
+
+</body>
+</html>
